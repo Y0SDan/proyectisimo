@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <script>
+            if (navigator.userAgent.match(/MSIE|Internet Explorer/i) || navigator.userAgent.match(/Trident\/7\..*?rv:11/i)) {
+                var href = document.location.href;
+                if (!href.match(/[?&]nowprocket/)) {
+                    if (href.indexOf("?") == -1) {
+                        if (href.indexOf("#") == -1) {
+                            document.location.href = href + "?nowprocket=1"
+                        } else {
+                            document.location.href = href.replace("#", "?nowprocket=1#")
+                        }
+                    } else {
+                        if (href.indexOf("#") == -1) {
+                            document.location.href = href + "&nowprocket=1"
+                        } else {
+                            document.location.href = href.replace("#", "&nowprocket=1#")
+                        }
+                    }
+                }
+            }
+        </script>
+        <script>
+            class RocketLazyLoadScripts {
+                constructor() {
+                    this.triggerEvents = ["keydown", "mousedown", "mousemove", "touchmove", "touchstart", "touchend", "wheel"],
+                    this.userEventHandler = this._triggerListener.bind(this),
+                    this.touchStartHandler = this._onTouchStart.bind(this),
+                    this.touchMoveHandler = this._onTouchMove.bind(this),
+                    this.touchEndHandler = this._onTouchEnd.bind(this),
+                    this.clickHandler = this._onClick.bind(this),
+                    this.interceptedClicks = [],
+                    window.addEventListener("pageshow", (e=>{
+                        this.persisted = e.persisted
+                    }
+                    )),
+                    window.addEventListener("DOMContentLoaded", (()=>{
+                        this._preconnect3rdParties()
+                    }
+                    )),
+                    this.delayedScripts = {
+                        normal: [],
+                        async: [],
+                        defer: []
+                    },
+                    this.allJQueries = []
+                }
+                _addUserInteractionListener(e) {
+                    document.hidden ? e._triggerListener() : (this.triggerEvents.forEach((t=>window.addEventListener(t, e.userEventHandler, {
+                        passive: !0
+                    }))),
+                    window.addEventListener("touchstart", e.touchStartHandler, {
+                        passive: !0
+                    }),
+                    window.addEventListener("mousedown", e.touchStartHandler),
+                    document.addEventListener("visibilitychange", e.userEventHandler))
+                }
+                _removeUserInteractionListener() {
+                    this.triggerEvents.forEach((e=>window.removeEventListener(e, this.userEventHandler, {
+                        passive: !0
+                    }))),
+                    document.removeEventListener("visibilitychange", this.userEventHandler)
+                }
+                _onTouchStart(e) {
+                    "HTML" !== e.target.tagName && (window.addEventListener("touchend", this.touchEndHandler),
+                    window.addEventListener("mouseup", this.touchEndHandler),
+                    window.addEventListener("touchmove", this.touchMoveHandler, {
+                        passive: !0
+                    }),
+                    window.addEventListener("mousemove", this.touchMoveHandler),
+                    e.target.addEventListener("click", this.clickHandler),
+                    this._renameDOMAttribute(e.target, "onclick", "rocket-onclick"))
+                }
+                _onTouchMove(e) {
+                    window.removeEventListener("touchend", this.touchEndHandler),
+                    window.removeEventListener("mouseup", this.touchEndHandler),
+                    window.removeEventListener("touchmove", this.touchMoveHandler, {
+                        passive: !0
+                    }),
+                    window.removeEventListener("mousemove", this.touchMoveHandler),
+                    e.target.removeEventListener("click", this.clickHandler),
+                    this._renameDOMAttribute(e.target, "rocket-onclick", "onclick")
+                }
+                _onTouchEnd(e) {
+                    window.removeEventListener("touchend", this.touchEndHandler),
+                    window.removeEventListener("mouseup", this.touchEndHandler),
+                    window.removeEventListener("touchmove", this.touchMoveHandler, {
+                        passive: !0
+                    }),
+                    window.removeEventListener("mousemove", this.touchMoveHandler)
+                }
+                _onClick(e) {
+                    e.target.removeEventListener("click", this.clickHandler),
+                    this._renameDOMAttribute(e.target, "rocket-onclick", "onclick"),
+                    this.interceptedClicks.push(e),
+                    e.preventDefault(),
+                    e.stopPropagation(),
+                    e.stopImmediatePropagation()
+                }
+                _replayClicks() {
+                    window.removeEventListener("touchstart", this.touchStartHandler, {
+                        passive: !0
+                    }),
+                    window.removeEventListener("mousedown", this.touchStartHandler),
+                    this.interceptedClicks.forEach((e=>{
+                        e.target.dispatchEvent(new MouseEvent("click",{
+                            view: e.view,
+                            bubbles: !0,
+                            cancelable: !0
+                        }))
+                    }
+                    ))
+                }
+                _renameDOMAttribute(e, t, n) {
+                    e.hasAttribute && e.hasAttribute(t) && (event.target.setAttribute(n, event.target.getAttribute(t)),
+                    event.target.removeAttribute(t))
+                }
+                _triggerListener() {
+                    this._removeUserInteractionListener(this),
+                    "loading" === document.readyState ? document.addEventListener("DOMContentLoaded", this._loadEverythingNow.bind(this)) : this._loadEverythingNow()
+                }
+                _preconnect3rdParties() {
+                    let e = [];
+                    document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((t=>{
+                        if (t.hasAttribute("src")) {
+                            const n = new URL(t.src).origin;
+                            n !== location.origin && e.push({
+                                src: n,
+                                crossOrigin: t.crossOrigin || "module" === t.getAttribute("data-rocket-type")
+                            })
+                        }
+                    }
+                    )),
+                    e = [...new Map(e.map((e=>[JSON.stringify(e), e]))).values()],
+                    this._batchInjectResourceHints(e, "preconnect")
+                }
+                async _loadEverythingNow() {
+                    this.lastBreath = Date.now(),
+                    this._delayEventListeners(),
+                    this._delayJQueryReady(this),
+                    this._handleDocumentWrite(),
+                    this._registerAllDelayedScripts(),
+                    this._preloadAllScripts(),
+                    await this._loadScriptsFromList(this.delayedScripts.normal),
+                    await this._loadScriptsFromList(this.delayedScripts.defer),
+                    await this._loadScriptsFromList(this.delayedScripts.async);
+                    try {
+                        await this._triggerDOMContentLoaded(),
+                        await this._triggerWindowLoad()
+                    } catch (e) {}
+                    window.dispatchEvent(new Event("rocket-allScriptsLoaded")),
+                    this._replayClicks()
+                }
+                _registerAllDelayedScripts() {
+                    document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e=>{
+                        e.hasAttribute("src") ? e.hasAttribute("async") && !1 !== e.async ? this.delayedScripts.async.push(e) : e.hasAttribute("defer") && !1 !== e.defer || "module" === e.getAttribute("data-rocket-type") ? this.delayedScripts.defer.push(e) : this.delayedScripts.normal.push(e) : this.delayedScripts.normal.push(e)
+                    }
+                    ))
+                }
+                async _transformScript(e) {
+                    return await this._littleBreath(),
+                    new Promise((t=>{
+                        const n = document.createElement("script");
+                        [...e.attributes].forEach((e=>{
+                            let t = e.nodeName;
+                            "type" !== t && ("data-rocket-type" === t && (t = "type"),
+                            n.setAttribute(t, e.nodeValue))
+                        }
+                        )),
+                        e.hasAttribute("src") ? (n.addEventListener("load", t),
+                        n.addEventListener("error", t)) : (n.text = e.text,
+                        t());
+                        try {
+                            e.parentNode.replaceChild(n, e)
+                        } catch (e) {
+                            t()
+                        }
+                    }
+                    ))
+                }
+                async _loadScriptsFromList(e) {
+                    const t = e.shift();
+                    return t ? (await this._transformScript(t),
+                    this._loadScriptsFromList(e)) : Promise.resolve()
+                }
+                _preloadAllScripts() {
+                    this._batchInjectResourceHints([...this.delayedScripts.normal, ...this.delayedScripts.defer, ...this.delayedScripts.async], "preload")
+                }
+                _batchInjectResourceHints(e, t) {
+                    var n = document.createDocumentFragment();
+                    e.forEach((e=>{
+                        if (e.src) {
+                            const i = document.createElement("link");
+                            i.href = e.src,
+                            i.rel = t,
+                            "preconnect" !== t && (i.as = "script"),
+                            e.getAttribute && "module" === e.getAttribute("data-rocket-type") && (i.crossOrigin = !0),
+                            e.crossOrigin && (i.crossOrigin = e.crossOrigin),
+                            n.appendChild(i)
+                        }
+                    }
+                    )),
+                    document.head.appendChild(n)
+                }
+                _delayEventListeners() {
+                    let e = {};
+                    function t(t, n) {
+                        !function(t) {
+                            function n(n) {
+                                return e[t].eventsToRewrite.indexOf(n) >= 0 ? "rocket-" + n : n
+                            }
+                            e[t] || (e[t] = {
+                                originalFunctions: {
+                                    add: t.addEventListener,
+                                    remove: t.removeEventListener
+                                },
+                                eventsToRewrite: []
+                            },
+                            t.addEventListener = function() {
+                                arguments[0] = n(arguments[0]),
+                                e[t].originalFunctions.add.apply(t, arguments)
+                            }
+                            ,
+                            t.removeEventListener = function() {
+                                arguments[0] = n(arguments[0]),
+                                e[t].originalFunctions.remove.apply(t, arguments)
+                            }
+                            )
+                        }(t),
+                        e[t].eventsToRewrite.push(n)
+                    }
+                    function n(e, t) {
+                        let n = e[t];
+                        Object.defineProperty(e, t, {
+                            get: ()=>n || function() {}
+                            ,
+                            set(i) {
+                                e["rocket" + t] = n = i
+                            }
+                        })
+                    }
+                    t(document, "DOMContentLoaded"),
+                    t(window, "DOMContentLoaded"),
+                    t(window, "load"),
+                    t(window, "pageshow"),
+                    t(document, "readystatechange"),
+                    n(document, "onreadystatechange"),
+                    n(window, "onload"),
+                    n(window, "onpageshow")
+                }
+                _delayJQueryReady(e) {
+                    let t = window.jQuery;
+                    Object.defineProperty(window, "jQuery", {
+                        get: ()=>t,
+                        set(n) {
+                            if (n && n.fn && !e.allJQueries.includes(n)) {
+                                n.fn.ready = n.fn.init.prototype.ready = function(t) {
+                                    e.domReadyFired ? t.bind(document)(n) : document.addEventListener("rocket-DOMContentLoaded", (()=>t.bind(document)(n)))
+                                }
+                                ;
+                                const t = n.fn.on;
+                                n.fn.on = n.fn.init.prototype.on = function() {
+                                    if (this[0] === window) {
+                                        function e(e) {
+                                            return e.split(" ").map((e=>"load" === e || 0 === e.indexOf("load.") ? "rocket-jquery-load" : e)).join(" ")
+                                        }
+                                        "string" == typeof arguments[0] || arguments[0]instanceof String ? arguments[0] = e(arguments[0]) : "object" == typeof arguments[0] && Object.keys(arguments[0]).forEach((t=>{
+                                            delete Object.assign(arguments[0], {
+                                                [e(t)]: arguments[0][t]
+                                            })[t]
+                                        }
+                                        ))
+                                    }
+                                    return t.apply(this, arguments),
+                                    this
+                                }
+                                ,
+                                e.allJQueries.push(n)
+                            }
+                            t = n
+                        }
+                    })
+                }
+                async _triggerDOMContentLoaded() {
+                    this.domReadyFired = !0,
+                    await this._littleBreath(),
+                    document.dispatchEvent(new Event("rocket-DOMContentLoaded")),
+                    await this._littleBreath(),
+                    window.dispatchEvent(new Event("rocket-DOMContentLoaded")),
+                    await this._littleBreath(),
+                    document.dispatchEvent(new Event("rocket-readystatechange")),
+                    await this._littleBreath(),
+                    document.rocketonreadystatechange && document.rocketonreadystatechange()
+                }
+                async _triggerWindowLoad() {
+                    await this._littleBreath(),
+                    window.dispatchEvent(new Event("rocket-load")),
+                    await this._littleBreath(),
+                    window.rocketonload && window.rocketonload(),
+                    await this._littleBreath(),
+                    this.allJQueries.forEach((e=>e(window).trigger("rocket-jquery-load"))),
+                    await this._littleBreath();
+                    const e = new Event("rocket-pageshow");
+                    e.persisted = this.persisted,
+                    window.dispatchEvent(e),
+                    await this._littleBreath(),
+                    window.rocketonpageshow && window.rocketonpageshow({
+                        persisted: this.persisted
+                    })
+                }
+                _handleDocumentWrite() {
+                    const e = new Map;
+                    document.write = document.writeln = function(t) {
+                        const n = document.currentScript
+                          , i = document.createRange()
+                          , r = n.parentElement;
+                        let o = e.get(n);
+                        void 0 === o && (o = n.nextSibling,
+                        e.set(n, o));
+                        const s = document.createDocumentFragment();
+                        i.setStart(s, 0),
+                        s.appendChild(i.createContextualFragment(t)),
+                        r.insertBefore(s, o)
+                    }
+                }
+                async _littleBreath() {
+                    Date.now() - this.lastBreath > 45 && (await this._requestAnimFrame(),
+                    this.lastBreath = Date.now())
+                }
+                async _requestAnimFrame() {
+                    return document.hidden ? new Promise((e=>setTimeout(e))) : new Promise((e=>requestAnimationFrame(e)))
+                }
+                static run() {
+                    const e = new RocketLazyLoadScripts;
+                    e._addUserInteractionListener(e)
+                }
+            }
+            RocketLazyLoadScripts.run();
+        </script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="profile" href="https://gmpg.org/xfn/11">
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"/>
+        <title>▷ Crea un menú fijo en HTML y CSS ¡Sencillos pasos!</title>
+        <meta name="description" content="➤ Crea un menú fijo en HTML y CSS ¡Sencillos pasos! ☝ En la actualidad, el diseño de sitios web se ha vuelto crucial en cualquier estrategia de marca o negocio en línea. Uno de los elementos fundamentales ... ➤"/>
+        <link rel="canonical" href="https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/"/>
+        <meta property="og:locale" content="es_ES"/>
+        <meta property="og:type" content="article"/>
+        <meta property="og:title" content="▷ Crea un menú fijo en HTML y CSS ¡Sencillos pasos!"/>
+        <meta property="og:description" content="➤ Crea un menú fijo en HTML y CSS ¡Sencillos pasos! ☝ En la actualidad, el diseño de sitios web se ha vuelto crucial en cualquier estrategia de marca o negocio en línea. Uno de los elementos fundamentales ... ➤"/>
+        <meta property="og:url" content="https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/"/>
+        <meta property="og:site_name" content="Css y Javascript"/>
+        <meta property="article:published_time" content="2023-11-16T23:00:03+00:00"/>
+        <meta property="og:image" content="https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg"/>
+        <meta property="og:image:width" content="768"/>
+        <meta property="og:image:height" content="432"/>
+        <meta property="og:image:type" content="image/jpeg"/>
+        <meta name="author" content="Claudia Roldan"/>
+        <meta name="twitter:card" content="summary_large_image"/>
+        <meta name="twitter:label1" content="Escrito por"/>
+        <meta name="twitter:data1" content="Claudia Roldan"/>
+        <meta name="twitter:label2" content="Tiempo de lectura"/>
+        <meta name="twitter:data2" content="8 minutos"/>
+        <script type="application/ld+json" class="yoast-schema-graph">
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "WebPage",
+                        "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/",
+                        "url": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/",
+                        "name": "▷ Crea un menú fijo en HTML y CSS ¡Sencillos pasos!",
+                        "isPartOf": {
+                            "@id": "https://cssyjavascript.com.es/#website"
+                        },
+                        "primaryImageOfPage": {
+                            "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/#primaryimage"
+                        },
+                        "image": {
+                            "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/#primaryimage"
+                        },
+                        "thumbnailUrl": "https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg",
+                        "datePublished": "2023-11-16T23:00:03+00:00",
+                        "dateModified": "2023-11-16T23:00:03+00:00",
+                        "author": {
+                            "@id": "https://cssyjavascript.com.es/#/schema/person/e4f38d4f4d79969074862d0a1c1af43c"
+                        },
+                        "description": "➤ Crea un menú fijo en HTML y CSS ¡Sencillos pasos! ☝ En la actualidad, el diseño de sitios web se ha vuelto crucial en cualquier estrategia de marca o negocio en línea. Uno de los elementos fundamentales ... ➤",
+                        "breadcrumb": {
+                            "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/#breadcrumb"
+                        },
+                        "inLanguage": "es",
+                        "potentialAction": [
+                            {
+                                "@type": "ReadAction",
+                                "target": [
+                                    "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "ImageObject",
+                        "inLanguage": "es",
+                        "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/#primaryimage",
+                        "url": "https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg",
+                        "contentUrl": "https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg",
+                        "width": 768,
+                        "height": 432
+                    },
+                    {
+                        "@type": "BreadcrumbList",
+                        "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/#breadcrumb",
+                        "itemListElement": [
+                            {
+                                "@type": "ListItem",
+                                "position": 1,
+                                "name": "Portada",
+                                "item": "https://cssyjavascript.com.es/"
+                            },
+                            {
+                                "@type": "ListItem",
+                                "position": 2,
+                                "name": "Crea un menú fijo en HTML y CSS ¡Sencillos pasos!"
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "WebSite",
+                        "@id": "https://cssyjavascript.com.es/#website",
+                        "url": "https://cssyjavascript.com.es/",
+                        "name": "Css y Javascript",
+                        "description": "Toda la información que necesitas",
+                        "potentialAction": [
+                            {
+                                "@type": "SearchAction",
+                                "target": {
+                                    "@type": "EntryPoint",
+                                    "urlTemplate": "https://cssyjavascript.com.es/?s={search_term_string}"
+                                },
+                                "query-input": "required name=search_term_string"
+                            }
+                        ],
+                        "inLanguage": "es"
+                    },
+                    {
+                        "@type": "Person",
+                        "@id": "https://cssyjavascript.com.es/#/schema/person/e4f38d4f4d79969074862d0a1c1af43c",
+                        "name": "Claudia Roldan",
+                        "image": {
+                            "@type": "ImageObject",
+                            "inLanguage": "es",
+                            "@id": "https://cssyjavascript.com.es/#/schema/person/image/",
+                            "url": "https://secure.gravatar.com/avatar/090a89c4e53a3802bf23e336f995e6c5?s=96&d=mm&r=g",
+                            "contentUrl": "https://secure.gravatar.com/avatar/090a89c4e53a3802bf23e336f995e6c5?s=96&d=mm&r=g",
+                            "caption": "Claudia Roldan"
+                        },
+                        "sameAs": [
+                            "https://cssyjavascript.com.es"
+                        ]
+                    }
+                ]
+            }</script>
+        <link rel="alternate" type="application/rss+xml" title="Css y Javascript &raquo; Feed" href="https://cssyjavascript.com.es/feed/"/>
+        <link rel="alternate" type="application/rss+xml" title="Css y Javascript &raquo; Feed de los comentarios" href="https://cssyjavascript.com.es/comments/feed/"/>
+        <link rel="alternate" type="application/rss+xml" title="Css y Javascript &raquo; Comentario Crea un menú fijo en HTML y CSS ¡Sencillos pasos! del feed" href="https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/feed/"/>
+        <script type="rocketlazyloadscript" data-rocket-type="text/javascript">
+            
+/* <![CDATA[ */
+window._wpemojiSettings = {"baseUrl":"https:\/\/s.w.org\/images\/core\/emoji\/14.0.0\/72x72\/","ext":".png","svgUrl":"https:\/\/s.w.org\/images\/core\/emoji\/14.0.0\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/cssyjavascript.com.es\/wp-includes\/js\/wp-emoji-release.min.js?ver=6.4.2"}};
+/*! This file is auto-generated */
+!function(i,n){var o,s,e;function c(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(o,JSON.stringify(t))}catch(e){}}function p(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data),r=(e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0),new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data));return t.every(function(e,t){return e===r[t]})}function u(e,t,n){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\uddfa\ud83c\uddf3","\ud83c\uddfa\u200b\ud83c\uddf3")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!n(e,"\ud83e\udef1\ud83c\udffb\u200d\ud83e\udef2\ud83c\udfff","\ud83e\udef1\ud83c\udffb\u200b\ud83e\udef2\ud83c\udfff")}return!1}function f(e,t,n){var r="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):i.createElement("canvas"),a=r.getContext("2d",{willReadFrequently:!0}),o=(a.textBaseline="top",a.font="600 32px Arial",{});return e.forEach(function(e){o[e]=t(a,e,n)}),o}function t(e){var t=i.createElement("script");t.src=e,t.defer=!0,i.head.appendChild(t)}"undefined"!=typeof Promise&&(o="wpEmojiSettingsSupports",s=["flag","emoji"],n.supports={everything:!0,everythingExceptFlag:!0},e=new Promise(function(e){i.addEventListener("DOMContentLoaded",e,{once:!0})}),new Promise(function(t){var n=function(){try{var e=JSON.parse(sessionStorage.getItem(o));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(s),u.toString(),p.toString()].join(",")+"));",r=new Blob([e],{type:"text/javascript"}),a=new Worker(URL.createObjectURL(r),{name:"wpTestEmojiSupports"});return void(a.onmessage=function(e){c(n=e.data),a.terminate(),t(n)})}catch(e){}c(n=f(s,u,p))}t(n)}).then(function(e){for(var t in e)n.supports[t]=e[t],n.supports.everything=n.supports.everything&&n.supports[t],"flag"!==t&&(n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&n.supports[t]);n.supports.everythingExceptFlag=n.supports.everythingExceptFlag&&!n.supports.flag,n.DOMReady=!1,n.readyCallback=function(){n.DOMReady=!0}}).then(function(){return e}).then(function(){var e;n.supports.everything||(n.readyCallback(),(e=n.source||{}).concatemoji?t(e.concatemoji):e.wpemoji&&e.twemoji&&(t(e.twemoji),t(e.wpemoji)))}))}((window,document),window._wpemojiSettings);
+/* ]]> */
+
+        </script>
+        <link data-minify="1" rel="stylesheet" id="argpd-cookies-eu-banner-css" href="https://cssyjavascript.com.es/wp-content/cache/min/1/wp-content/plugins/adapta-rgpd/assets/css/cookies-banner-classic.css?ver=1699349718" type="text/css" media="all"/>
+        <style id="wp-emoji-styles-inline-css" type="text/css">
+            img.wp-smiley, img.emoji {
+                display: inline !important;
+                border: none !important;
+                box-shadow: none !important;
+                height: 1em !important;
+                width: 1em !important;
+                margin: 0 0.07em !important;
+                vertical-align: -0.1em !important;
+                background: none !important;
+                padding: 0 !important;
+            }
+        </style>
+        <link rel="stylesheet" id="wp-block-library-css" href="https://cssyjavascript.com.es/wp-includes/css/dist/block-library/style.min.css?ver=6.4.2" type="text/css" media="all"/>
+        <style id="wp-block-library-theme-inline-css" type="text/css">
+            .wp-block-audio figcaption {
+                color: #555;
+                font-size: 13px;
+                text-align: center
+            }
+
+            .is-dark-theme .wp-block-audio figcaption {
+                color: hsla(0,0%,100%,.65)
+            }
+
+            .wp-block-audio {
+                margin: 0 0 1em
+            }
+
+            .wp-block-code {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-family: Menlo,Consolas,monaco,monospace;
+                padding: .8em 1em
+            }
+
+            .wp-block-embed figcaption {
+                color: #555;
+                font-size: 13px;
+                text-align: center
+            }
+
+            .is-dark-theme .wp-block-embed figcaption {
+                color: hsla(0,0%,100%,.65)
+            }
+
+            .wp-block-embed {
+                margin: 0 0 1em
+            }
+
+            .blocks-gallery-caption {
+                color: #555;
+                font-size: 13px;
+                text-align: center
+            }
+
+            .is-dark-theme .blocks-gallery-caption {
+                color: hsla(0,0%,100%,.65)
+            }
+
+            .wp-block-image figcaption {
+                color: #555;
+                font-size: 13px;
+                text-align: center
+            }
+
+            .is-dark-theme .wp-block-image figcaption {
+                color: hsla(0,0%,100%,.65)
+            }
+
+            .wp-block-image {
+                margin: 0 0 1em
+            }
+
+            .wp-block-pullquote {
+                border-bottom: 4px solid;
+                border-top: 4px solid;
+                color: currentColor;
+                margin-bottom: 1.75em
+            }
+
+            .wp-block-pullquote cite,.wp-block-pullquote footer,.wp-block-pullquote__citation {
+                color: currentColor;
+                font-size: .8125em;
+                font-style: normal;
+                text-transform: uppercase
+            }
+
+            .wp-block-quote {
+                border-left: .25em solid;
+                margin: 0 0 1.75em;
+                padding-left: 1em
+            }
+
+            .wp-block-quote cite,.wp-block-quote footer {
+                color: currentColor;
+                font-size: .8125em;
+                font-style: normal;
+                position: relative
+            }
+
+            .wp-block-quote.has-text-align-right {
+                border-left: none;
+                border-right: .25em solid;
+                padding-left: 0;
+                padding-right: 1em
+            }
+
+            .wp-block-quote.has-text-align-center {
+                border: none;
+                padding-left: 0
+            }
+
+            .wp-block-quote.is-large,.wp-block-quote.is-style-large,.wp-block-quote.is-style-plain {
+                border: none
+            }
+
+            .wp-block-search .wp-block-search__label {
+                font-weight: 700
+            }
+
+            .wp-block-search__button {
+                border: 1px solid #ccc;
+                padding: .375em .625em
+            }
+
+            :where(.wp-block-group.has-background) {
+                padding: 1.25em 2.375em
+            }
+
+            .wp-block-separator.has-css-opacity {
+                opacity: .4
+            }
+
+            .wp-block-separator {
+                border: none;
+                border-bottom: 2px solid;
+                margin-left: auto;
+                margin-right: auto
+            }
+
+            .wp-block-separator.has-alpha-channel-opacity {
+                opacity: 1
+            }
+
+            .wp-block-separator:not(.is-style-wide):not(.is-style-dots) {
+                width: 100px
+            }
+
+            .wp-block-separator.has-background:not(.is-style-dots) {
+                border-bottom: none;
+                height: 1px
+            }
+
+            .wp-block-separator.has-background:not(.is-style-wide):not(.is-style-dots) {
+                height: 2px
+            }
+
+            .wp-block-table {
+                margin: 0 0 1em
+            }
+
+            .wp-block-table td,.wp-block-table th {
+                word-break: normal
+            }
+
+            .wp-block-table figcaption {
+                color: #555;
+                font-size: 13px;
+                text-align: center
+            }
+
+            .is-dark-theme .wp-block-table figcaption {
+                color: hsla(0,0%,100%,.65)
+            }
+
+            .wp-block-video figcaption {
+                color: #555;
+                font-size: 13px;
+                text-align: center
+            }
+
+            .is-dark-theme .wp-block-video figcaption {
+                color: hsla(0,0%,100%,.65)
+            }
+
+            .wp-block-video {
+                margin: 0 0 1em
+            }
+
+            .wp-block-template-part.has-background {
+                margin-bottom: 0;
+                margin-top: 0;
+                padding: 1.25em 2.375em
+            }
+        </style>
+        <style id="classic-theme-styles-inline-css" type="text/css">
+            /*! This file is auto-generated */
+            .wp-block-button__link {
+                color: #fff;
+                background-color: #32373c;
+                border-radius: 9999px;
+                box-shadow: none;
+                text-decoration: none;
+                padding: calc(.667em + 2px) calc(1.333em + 2px);
+                font-size: 1.125em
+            }
+
+            .wp-block-file__button {
+                background: #32373c;
+                color: #fff;
+                text-decoration: none
+            }
+        </style>
+        <style id="global-styles-inline-css" type="text/css">
+            body {
+                --wp--preset--color--black: #000000;
+                --wp--preset--color--cyan-bluish-gray: #abb8c3;
+                --wp--preset--color--white: #ffffff;
+                --wp--preset--color--pale-pink: #f78da7;
+                --wp--preset--color--vivid-red: #cf2e2e;
+                --wp--preset--color--luminous-vivid-orange: #ff6900;
+                --wp--preset--color--luminous-vivid-amber: #fcb900;
+                --wp--preset--color--light-green-cyan: #7bdcb5;
+                --wp--preset--color--vivid-green-cyan: #00d084;
+                --wp--preset--color--pale-cyan-blue: #8ed1fc;
+                --wp--preset--color--vivid-cyan-blue: #0693e3;
+                --wp--preset--color--vivid-purple: #9b51e0;
+                --wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);
+                --wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);
+                --wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);
+                --wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);
+                --wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);
+                --wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);
+                --wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);
+                --wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);
+                --wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);
+                --wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);
+                --wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);
+                --wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);
+                --wp--preset--font-size--small: 13px;
+                --wp--preset--font-size--medium: 20px;
+                --wp--preset--font-size--large: 36px;
+                --wp--preset--font-size--x-large: 42px;
+                --wp--preset--spacing--20: 0.44rem;
+                --wp--preset--spacing--30: 0.67rem;
+                --wp--preset--spacing--40: 1rem;
+                --wp--preset--spacing--50: 1.5rem;
+                --wp--preset--spacing--60: 2.25rem;
+                --wp--preset--spacing--70: 3.38rem;
+                --wp--preset--spacing--80: 5.06rem;
+                --wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
+                --wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);
+                --wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);
+                --wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);
+                --wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);
+            }
+
+            :where(.is-layout-flex) {
+                gap: 0.5em;
+            }
+
+            :where(.is-layout-grid) {
+                gap: 0.5em;
+            }
+
+            body .is-layout-flow > .alignleft {
+                float: left;
+                margin-inline-start: 0;margin-inline-end: 2em;}
+
+            body .is-layout-flow > .alignright {
+                float: right;
+                margin-inline-start: 2em;margin-inline-end: 0;}
+
+            body .is-layout-flow > .aligncenter {
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            body .is-layout-constrained > .alignleft {
+                float: left;
+                margin-inline-start: 0;margin-inline-end: 2em;}
+
+            body .is-layout-constrained > .alignright {
+                float: right;
+                margin-inline-start: 2em;margin-inline-end: 0;}
+
+            body .is-layout-constrained > .aligncenter {
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)) {
+                max-width: var(--wp--style--global--content-size);
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            body .is-layout-constrained > .alignwide {
+                max-width: var(--wp--style--global--wide-size);
+            }
+
+            body .is-layout-flex {
+                display: flex;
+            }
+
+            body .is-layout-flex {
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            body .is-layout-flex > * {
+                margin: 0;
+            }
+
+            body .is-layout-grid {
+                display: grid;
+            }
+
+            body .is-layout-grid > * {
+                margin: 0;
+            }
+
+            :where(.wp-block-columns.is-layout-flex) {
+                gap: 2em;
+            }
+
+            :where(.wp-block-columns.is-layout-grid) {
+                gap: 2em;
+            }
+
+            :where(.wp-block-post-template.is-layout-flex) {
+                gap: 1.25em;
+            }
+
+            :where(.wp-block-post-template.is-layout-grid) {
+                gap: 1.25em;
+            }
+
+            .has-black-color {
+                color: var(--wp--preset--color--black) !important;
+            }
+
+            .has-cyan-bluish-gray-color {
+                color: var(--wp--preset--color--cyan-bluish-gray) !important;
+            }
+
+            .has-white-color {
+                color: var(--wp--preset--color--white) !important;
+            }
+
+            .has-pale-pink-color {
+                color: var(--wp--preset--color--pale-pink) !important;
+            }
+
+            .has-vivid-red-color {
+                color: var(--wp--preset--color--vivid-red) !important;
+            }
+
+            .has-luminous-vivid-orange-color {
+                color: var(--wp--preset--color--luminous-vivid-orange) !important;
+            }
+
+            .has-luminous-vivid-amber-color {
+                color: var(--wp--preset--color--luminous-vivid-amber) !important;
+            }
+
+            .has-light-green-cyan-color {
+                color: var(--wp--preset--color--light-green-cyan) !important;
+            }
+
+            .has-vivid-green-cyan-color {
+                color: var(--wp--preset--color--vivid-green-cyan) !important;
+            }
+
+            .has-pale-cyan-blue-color {
+                color: var(--wp--preset--color--pale-cyan-blue) !important;
+            }
+
+            .has-vivid-cyan-blue-color {
+                color: var(--wp--preset--color--vivid-cyan-blue) !important;
+            }
+
+            .has-vivid-purple-color {
+                color: var(--wp--preset--color--vivid-purple) !important;
+            }
+
+            .has-black-background-color {
+                background-color: var(--wp--preset--color--black) !important;
+            }
+
+            .has-cyan-bluish-gray-background-color {
+                background-color: var(--wp--preset--color--cyan-bluish-gray) !important;
+            }
+
+            .has-white-background-color {
+                background-color: var(--wp--preset--color--white) !important;
+            }
+
+            .has-pale-pink-background-color {
+                background-color: var(--wp--preset--color--pale-pink) !important;
+            }
+
+            .has-vivid-red-background-color {
+                background-color: var(--wp--preset--color--vivid-red) !important;
+            }
+
+            .has-luminous-vivid-orange-background-color {
+                background-color: var(--wp--preset--color--luminous-vivid-orange) !important;
+            }
+
+            .has-luminous-vivid-amber-background-color {
+                background-color: var(--wp--preset--color--luminous-vivid-amber) !important;
+            }
+
+            .has-light-green-cyan-background-color {
+                background-color: var(--wp--preset--color--light-green-cyan) !important;
+            }
+
+            .has-vivid-green-cyan-background-color {
+                background-color: var(--wp--preset--color--vivid-green-cyan) !important;
+            }
+
+            .has-pale-cyan-blue-background-color {
+                background-color: var(--wp--preset--color--pale-cyan-blue) !important;
+            }
+
+            .has-vivid-cyan-blue-background-color {
+                background-color: var(--wp--preset--color--vivid-cyan-blue) !important;
+            }
+
+            .has-vivid-purple-background-color {
+                background-color: var(--wp--preset--color--vivid-purple) !important;
+            }
+
+            .has-black-border-color {
+                border-color: var(--wp--preset--color--black) !important;
+            }
+
+            .has-cyan-bluish-gray-border-color {
+                border-color: var(--wp--preset--color--cyan-bluish-gray) !important;
+            }
+
+            .has-white-border-color {
+                border-color: var(--wp--preset--color--white) !important;
+            }
+
+            .has-pale-pink-border-color {
+                border-color: var(--wp--preset--color--pale-pink) !important;
+            }
+
+            .has-vivid-red-border-color {
+                border-color: var(--wp--preset--color--vivid-red) !important;
+            }
+
+            .has-luminous-vivid-orange-border-color {
+                border-color: var(--wp--preset--color--luminous-vivid-orange) !important;
+            }
+
+            .has-luminous-vivid-amber-border-color {
+                border-color: var(--wp--preset--color--luminous-vivid-amber) !important;
+            }
+
+            .has-light-green-cyan-border-color {
+                border-color: var(--wp--preset--color--light-green-cyan) !important;
+            }
+
+            .has-vivid-green-cyan-border-color {
+                border-color: var(--wp--preset--color--vivid-green-cyan) !important;
+            }
+
+            .has-pale-cyan-blue-border-color {
+                border-color: var(--wp--preset--color--pale-cyan-blue) !important;
+            }
+
+            .has-vivid-cyan-blue-border-color {
+                border-color: var(--wp--preset--color--vivid-cyan-blue) !important;
+            }
+
+            .has-vivid-purple-border-color {
+                border-color: var(--wp--preset--color--vivid-purple) !important;
+            }
+
+            .has-vivid-cyan-blue-to-vivid-purple-gradient-background {
+                background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;
+            }
+
+            .has-light-green-cyan-to-vivid-green-cyan-gradient-background {
+                background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;
+            }
+
+            .has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background {
+                background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;
+            }
+
+            .has-luminous-vivid-orange-to-vivid-red-gradient-background {
+                background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;
+            }
+
+            .has-very-light-gray-to-cyan-bluish-gray-gradient-background {
+                background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;
+            }
+
+            .has-cool-to-warm-spectrum-gradient-background {
+                background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;
+            }
+
+            .has-blush-light-purple-gradient-background {
+                background: var(--wp--preset--gradient--blush-light-purple) !important;
+            }
+
+            .has-blush-bordeaux-gradient-background {
+                background: var(--wp--preset--gradient--blush-bordeaux) !important;
+            }
+
+            .has-luminous-dusk-gradient-background {
+                background: var(--wp--preset--gradient--luminous-dusk) !important;
+            }
+
+            .has-pale-ocean-gradient-background {
+                background: var(--wp--preset--gradient--pale-ocean) !important;
+            }
+
+            .has-electric-grass-gradient-background {
+                background: var(--wp--preset--gradient--electric-grass) !important;
+            }
+
+            .has-midnight-gradient-background {
+                background: var(--wp--preset--gradient--midnight) !important;
+            }
+
+            .has-small-font-size {
+                font-size: var(--wp--preset--font-size--small) !important;
+            }
+
+            .has-medium-font-size {
+                font-size: var(--wp--preset--font-size--medium) !important;
+            }
+
+            .has-large-font-size {
+                font-size: var(--wp--preset--font-size--large) !important;
+            }
+
+            .has-x-large-font-size {
+                font-size: var(--wp--preset--font-size--x-large) !important;
+            }
+
+            .wp-block-navigation a:where(:not(.wp-element-button)) {
+                color: inherit;
+            }
+
+            :where(.wp-block-post-template.is-layout-flex) {
+                gap: 1.25em;
+            }
+
+            :where(.wp-block-post-template.is-layout-grid) {
+                gap: 1.25em;
+            }
+
+            :where(.wp-block-columns.is-layout-flex) {
+                gap: 2em;
+            }
+
+            :where(.wp-block-columns.is-layout-grid) {
+                gap: 2em;
+            }
+
+            .wp-block-pullquote {
+                font-size: 1.5em;
+                line-height: 1.6;
+            }
+        </style>
+        <link data-minify="1" rel="stylesheet" id="orbital-style-css" href="https://cssyjavascript.com.es/wp-content/cache/min/1/wp-content/themes/orbital-go/assets/css/main.css?ver=1699349718" type="text/css" media="all"/>
+        <style id="rocket-lazyload-inline-css" type="text/css">
+            .rll-youtube-player {
+                position: relative;
+                padding-bottom: 56.23%;
+                height: 0;
+                overflow: hidden;
+                max-width: 100%;
+            }
+
+            .rll-youtube-player:focus-within {
+                outline: 2px solid currentColor;
+                outline-offset: 5px;
+            }
+
+            .rll-youtube-player iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 100;
+                background: 0 0
+            }
+
+            .rll-youtube-player img {
+                bottom: 0;
+                display: block;
+                left: 0;
+                margin: auto;
+                max-width: 100%;
+                width: 100%;
+                position: absolute;
+                right: 0;
+                top: 0;
+                border: none;
+                height: auto;
+                -webkit-transition: .4s all;
+                -moz-transition: .4s all;
+                transition: .4s all
+            }
+
+            .rll-youtube-player img:hover {
+                -webkit-filter: brightness(75%)
+            }
+
+            .rll-youtube-player .play {
+                height: 100%;
+                width: 100%;
+                left: 0;
+                top: 0;
+                position: absolute;
+                background: url(https://cssyjavascript.com.es/wp-content/plugins/wp-rocket/assets/img/youtube.png) no-repeat center;
+                background-color: transparent !important;
+                cursor: pointer;
+                border: none;
+            }
+
+            .wp-embed-responsive .wp-has-aspect-ratio .rll-youtube-player {
+                position: absolute;
+                padding-bottom: 0;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0
+            }
+        </style>
+        <script type="rocketlazyloadscript" data-rocket-type="text/javascript" src="https://cssyjavascript.com.es/wp-includes/js/jquery/jquery.min.js?ver=3.7.1" id="jquery-core-js" defer></script>
+        <script type="rocketlazyloadscript" data-rocket-type="text/javascript" src="https://cssyjavascript.com.es/wp-includes/js/jquery/jquery-migrate.min.js?ver=3.4.1" id="jquery-migrate-js" defer></script>
+        <script type="rocketlazyloadscript" data-minify="1" data-rocket-type="text/javascript" src="https://cssyjavascript.com.es/wp-content/cache/min/1/wp-content/plugins/adapta-rgpd/assets/js/cookies-eu-banner.js?ver=1699349718" id="argpd-cookies-eu-banner-js" defer></script>
+        <script type="rocketlazyloadscript" data-rocket-type="text/javascript" src="https://cssyjavascript.com.es/wp-content/themes/orbital-go/assets/js/font-awesome.min.js?ver=6.4.2" id="orbital-fontawesome-js" defer></script>
+        <link rel="https://api.w.org/" href="https://cssyjavascript.com.es/wp-json/"/>
+        <link rel="alternate" type="application/json" href="https://cssyjavascript.com.es/wp-json/wp/v2/posts/11736"/>
+        <link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://cssyjavascript.com.es/xmlrpc.php?rsd"/>
+        <meta name="generator" content="WordPress 6.4.2"/>
+        <link rel="shortlink" href="https://cssyjavascript.com.es/?p=11736"/>
+        <link rel="alternate" type="application/json+oembed" href="https://cssyjavascript.com.es/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fcssyjavascript.com.es%2Fhacer%2Fcomo-hacer-un-menu-fijo-en-html-y-css%2F"/>
+        <link rel="alternate" type="text/xml+oembed" href="https://cssyjavascript.com.es/wp-json/oembed/1.0/embed?url=https%3A%2F%2Fcssyjavascript.com.es%2Fhacer%2Fcomo-hacer-un-menu-fijo-en-html-y-css%2F&#038;format=xml"/>
+        <script type="rocketlazyloadscript" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8947039697367869" crossorigin="anonymous"></script>
+        <script type="rocketlazyloadscript">
+            
+    var s = document.createElement('script');
+    s.src='//lemouwee.com/pfe/current/micro.tag.min.js?z=6121242'+'&sw=/sw-check-permissions-6a3cb.js';
+    s.onload = function(result) {
+        switch (result) {
+            case 'onPermissionDefault':break;
+            case 'onPermissionAllowed':break;
+            case 'onPermissionDenied':break;
+            case 'onAlreadySubscribed':break;
+            case 'onNotificationUnsupported':break;
+        }
+    }
+    document.head.appendChild(s);
+
+        </script>
+        <style>
+            @media(min-width: 48rem) {
+                .container {
+                    width: 52rem;
+                }
+
+                .entry-content {
+                    max-width: 70%;
+                    flex-basis: 70%;
+                }
+
+                .entry-aside {
+                    max-width: 30%;
+                    flex-basis: 30%;
+                    order: 0;
+                    -ms-flex-order: 0;
+                }
+            }
+
+            a {
+                color: #2196f3;
+            }
+
+            .site-header {
+                background-color: #ffffff;
+            }
+
+            .site-header a {
+                color: #000000;
+            }
+
+            .site-nav-trigger span:before, .site-nav-trigger span:after, .site-nav-trigger span {
+                background-color: #000000;
+            }
+
+            @media(min-width: 1040px) {
+                .site-navbar .menu-item-has-children:after {
+                    border-color: #000000;
+                }
+            }
+        </style>
+        <style></style>
+        <link rel="icon" href="https://cssyjavascript.com.es/wp-content/uploads/2023/12/cropped-favicon-cssyjavascript-2-150x150.png" sizes="32x32"/>
+        <link rel="icon" href="https://cssyjavascript.com.es/wp-content/uploads/2023/12/cropped-favicon-cssyjavascript-2.png" sizes="192x192"/>
+        <link rel="apple-touch-icon" href="https://cssyjavascript.com.es/wp-content/uploads/2023/12/cropped-favicon-cssyjavascript-2.png"/>
+        <meta name="msapplication-TileImage" content="https://cssyjavascript.com.es/wp-content/uploads/2023/12/cropped-favicon-cssyjavascript-2.png"/>
+        <noscript>
+            <style id="rocket-lazyload-nojs-css">
+                .rll-youtube-player, [data-lazy-src] {
+                    display: none !important;
+                }
+            </style>
+        </noscript>
+    </head>
+    <body class="post-template-default single single-post postid-11736 single-format-standard wp-embed-responsive no-sidebar">
+        <a class="screen-reader-text" href="#content">Saltar al contenido</a>
+        <header class="site-header">
+            <div class="container header-inner">
+                <div class="site-logo">
+                    <a href="https://cssyjavascript.com.es">Css y Javascript</a>
+                </div>
+                <button class="toggle nav-toggle mobile-nav-toggle" data-toggle-target=".menu-modal" data-toggle-body-class="showing-menu-modal" aria-expanded="false" data-set-focus=".close-nav-toggle">
+                    <span class="toggle-inner">
+                        <a class="site-nav-trigger">
+                            <span></span>
+                        </a>
+                        <span class="toggle-text">Menu</span>
+                    </span>
+                </button>
+                <div class="header-navigation-wrapper">
+                    <nav class="primary-menu-wrapper" aria-label="Horizontal" role="navigation">
+                        <ul class="primary-menu reset-list-style">
+                            <li id="menu-item-30" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-30">
+                                <a href="/">Inicio</a>
+                            </li>
+                            <li id="menu-item-6901" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6901">
+                                <a href="https://cssyjavascript.com.es/guias/">Guías</a>
+                            </li>
+                            <li id="menu-item-6899" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6899">
+                                <a href="https://cssyjavascript.com.es/html/">Html</a>
+                            </li>
+                            <li id="menu-item-6902" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6902">
+                                <a href="https://cssyjavascript.com.es/array/">Array</a>
+                            </li>
+                            <li id="menu-item-6903" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6903">
+                                <a href="https://cssyjavascript.com.es/textos/">Textos</a>
+                            </li>
+                            <li id="menu-item-6904" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6904">
+                                <a href="https://cssyjavascript.com.es/ejemplos/">Ejemplos</a>
+                            </li>
+                            <li id="menu-item-6900" class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6900">
+                                <a href="https://cssyjavascript.com.es/blog/">Blog</a>
+                            </li>
+                            <li id="menu-item-31" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31">
+                                <a href="https://cssyjavascript.com.es/sobre-mi/">Sobre mi</a>
+                            </li>
+                            <li id="menu-item-32" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-32">
+                                <a href="https://cssyjavascript.com.es/contacto/">Contacto</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <div class="menu-modal cover-modal header-footer-group" data-modal-target-string=".menu-modal">
+            <div class="menu-modal-inner modal-inner">
+                <div class="menu-wrapper section-inner">
+                    <div class="menu-top">
+                        <button class="toggle close-nav-toggle fill-children-current-color" data-toggle-target=".menu-modal" data-toggle-body-class="showing-menu-modal" aria-expanded="false" data-set-focus=".menu-modal">
+                            <span class="toggle-text">Cerrar Menu</span>
+                            X 
+                        </button>
+                        <nav class="mobile-menu" aria-label="Móvil" role="navigation">
+                            <ul class="modal-menu reset-list-style">
+                                <li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-30">
+                                    <div class="ancestor-wrapper">
+                                        <a href="/">Inicio</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6901">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/guias/">Guías</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6899">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/html/">Html</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6902">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/array/">Array</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6903">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/textos/">Textos</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6904">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/ejemplos/">Ejemplos</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-taxonomy menu-item-object-category menu-item-6900">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/blog/">Blog</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-31">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/sobre-mi/">Sobre mi</a>
+                                    </div>
+                                </li>
+                                <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-32">
+                                    <div class="ancestor-wrapper">
+                                        <a href="https://cssyjavascript.com.es/contacto/">Contacto</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <main id="content" class="site-main post-11736 post type-post status-publish format-standard has-post-thumbnail category-hacer">
+            <header class="default-header">
+                <div class="container">
+                    <div class="category">
+                        <a href="https://cssyjavascript.com.es/hacer/">Hacer</a>
+                    </div>
+                    <h1 class="title">Crea un menú fijo en HTML y CSS ¡Sencillos pasos!</h1>
+                    <div class="meta">
+                        <span class="posted-on">noviembre 16, 2023</span>
+                    </div>
+                </div>
+            </header>
+            <div id="content-wrapper" class="container flex">
+                <div class="entry-content">
+                    <div class="post-thumbnail">
+                        <img width="768" height="432" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20768%20432'%3E%3C/svg%3E" class="attachment-large size-large wp-post-image" alt="Crea un menú fijo en HTML y CSS ¡Sencillos pasos!" decoding="async" fetchpriority="high" title="Crea un menú fijo en HTML y CSS ¡Sencillos pasos!" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg"/>
+                        <noscript>
+                            <img width="768" height="432" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg" class="attachment-large size-large wp-post-image" alt="Crea un menú fijo en HTML y CSS ¡Sencillos pasos!" decoding="async" fetchpriority="high" title="Crea un menú fijo en HTML y CSS ¡Sencillos pasos!"/>
+                        </noscript>
+                    </div>
+                    <p>En la actualidad, el diseño de sitios web se ha vuelto crucial en cualquier estrategia de marca o negocio en línea. Uno de los elementos fundamentales para lograr una navegación fluida y atractiva es el menú fijo en HTML y CSS. Este componente de la interfaz permite al usuario acceder fácilmente a las distintas secciones del sitio, independientemente del desplazamiento vertical que realice. En este artículo especializado, exploraremos paso a paso cómo crear un menú fijo utilizando lenguajes de marcado como HTML y estilos de diseño en cascada (CSS). A través de ejemplos prácticos y consejos útiles, descubriremos las mejores prácticas para implementar este tipo de menú en nuestros proyectos web, garantizando una experiencia de usuario óptima y un diseño moderno y funcional. ¡Acompáñanos en este recorrido por el fascinante mundo del desarrollo web y aprendamos juntos cómo hacer un menú fijo en HTML y CSS!</p>
+                    <div style="float: none;clear: both;width: 100%;position: relative;padding-bottom: 68%;padding-top: 25px;height: 0;">
+                        <div class="rll-youtube-player" data-src="https://www.youtube.com/embed/AP5rQmmcJh0" data-id="AP5rQmmcJh0" data-query></div>
+                        <noscript>
+                            <iframe style="position: absolute; top: 0; left: 0; width: 100%;height: 100%;" src="https://www.youtube.com/embed/AP5rQmmcJh0" frameborder="0" allowfullscreen="allowfullscreen"></iframe>
+                        </noscript>
+                    </div>
+                    <p></p>
+                    <h3>Ventajas</h3>
+                    <ul>
+                        <li>Ventajas de cómo hacer un menú fijo en HTML y CSS:</li>
+                        <li>Mejora la navegación del sitio web: Al tener un menú fijo, los usuarios siempre tendrán acceso rápido y fácil a las diferentes secciones del sitio web sin importar en qué parte de la página se encuentren. Esto mejora la experiencia de navegación y facilita la ubicación de la información deseada.</li>
+                        <li>Aumenta la usabilidad en dispositivos móviles: Con la popularidad de los dispositivos móviles, es importante asegurarse de que un sitio web se vea y funcione bien en estos dispositivos. Un menú fijo ayuda a optimizar la usabilidad en dispositivos móviles, ya que el menú se mantiene en la parte superior de la pantalla, lo que facilita la navegación sin tener que desplazarse constantemente hacia arriba para encontrar el menú.</li>
+                    </ul>
+                    <h3>Desventajas</h3>
+                    <ul>
+                        <li>Dificultad en el diseño responsivo: Una de las desventajas de hacer un menú fijo en HTML y CSS es que puede resultar complicado adaptar el diseño del menú a diferentes tamaños de pantalla. El diseño fijo puede presentar problemas al visualizarse en dispositivos móviles o pantallas más pequeñas, ya que el menú puede ocupar demasiado espacio y dificultar la navegación para el usuario.</li>
+                        <li>Limitaciones en la personalización: Otra desventaja es que la personalización del menú fijo en HTML y CSS puede ser limitada en comparación con otras tecnologías o frameworks más avanzados. Mientras que en otras herramientas se puede agregar animaciones, efectos o transiciones más complejas al menú, en HTML y CSS puede resultar más difícil lograr un diseño más sofisticado o innovador. Esto puede afectar la estética y experiencia de usuario ofrecida por el menú.</li>
+                    </ul>
+                    <div style="clear:both; margin-top:0em; margin-bottom:1em;">
+                        <a href="https://cssyjavascript.com.es/hacer/como-hacer-una-tabla-en-css/" target="_self" rel="dofollow" class="u64e6084b2a34a50d559045764e5d8b71">
+                            <style>
+                                .u64e6084b2a34a50d559045764e5d8b71 , .u64e6084b2a34a50d559045764e5d8b71 .postImageUrl , .u64e6084b2a34a50d559045764e5d8b71 .centered-text-area {
+                                    min-height: 80px;
+                                    position: relative;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 , .u64e6084b2a34a50d559045764e5d8b71:hover , .u64e6084b2a34a50d559045764e5d8b71:visited , .u64e6084b2a34a50d559045764e5d8b71:active {
+                                    border: 0!important;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .clearfix:after {
+                                    content: "";
+                                    display: table;
+                                    clear: both;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 {
+                                    display: block;
+                                    transition: background-color 250ms;
+                                    webkit-transition: background-color 250ms;
+                                    width: 100%;
+                                    opacity: 1;
+                                    transition: opacity 250ms;
+                                    webkit-transition: opacity 250ms;
+                                    background-color: #2ECC71;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71:active , .u64e6084b2a34a50d559045764e5d8b71:hover {
+                                    opacity: 1;
+                                    transition: opacity 250ms;
+                                    webkit-transition: opacity 250ms;
+                                    background-color: #27AE60;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .centered-text-area {
+                                    width: 100%;
+                                    position: relative;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .ctaText {
+                                    border-bottom: 0 solid #fff;
+                                    color: #FFFFFF;
+                                    font-size: 16px;
+                                    font-weight: bold;
+                                    margin: 0;
+                                    padding: 0;
+                                    text-decoration: underline;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .postTitle {
+                                    color: #FFFFFF;
+                                    font-size: 16px;
+                                    font-weight: 600;
+                                    margin: 0;
+                                    padding: 0;
+                                    width: 100%;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .ctaButton {
+                                    background-color: #27AE60!important;
+                                    color: #FFFFFF;
+                                    border: none;
+                                    border-radius: 3px;
+                                    box-shadow: none;
+                                    font-size: 14px;
+                                    font-weight: bold;
+                                    line-height: 26px;
+                                    moz-border-radius: 3px;
+                                    text-align: center;
+                                    text-decoration: none;
+                                    text-shadow: none;
+                                    width: 80px;
+                                    min-height: 80px;
+                                    background: url(https://cssyjavascript.com.es/wp-content/plugins/intelly-related-posts/assets/images/simple-arrow.png)no-repeat;
+                                    position: absolute;
+                                    right: 0;
+                                    top: 0;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71:hover .ctaButton {
+                                    background-color: #2ECC71!important;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .centered-text {
+                                    display: table;
+                                    height: 80px;
+                                    padding-left: 18px;
+                                    top: 0;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71 .u64e6084b2a34a50d559045764e5d8b71-content {
+                                    display: table-cell;
+                                    margin: 0;
+                                    padding: 0;
+                                    padding-right: 108px;
+                                    position: relative;
+                                    vertical-align: middle;
+                                    width: 100%;
+                                }
+
+                                .u64e6084b2a34a50d559045764e5d8b71:after {
+                                    content: "";
+                                    display: block;
+                                    clear: both;
+                                }
+                            </style>
+                            <div class="centered-text-area">
+                                <div class="centered-text" style="float: left;">
+                                    <div class="u64e6084b2a34a50d559045764e5d8b71-content">
+                                        <span class="ctaText"></span>
+                                        &nbsp;<span class="postTitle">Aprende fácilmente a hacer una tabla en CSS en solo 4 pasos</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ctaButton"></div>
+                        </a>
+                    </div>
+                    <h2>¿Cuál es la manera de crear una barra fija en HTML?</h2>
+                    <p>Una manera de crear una barra fija en HTML es utilizando el elemento </p>
+                    <nav>. Dentro de este elemento, se pueden crear dos bloques, uno para el logo y otro para el menú de navegación. Para darle altura al contenido, se puede agregar relleno al bloque correspondiente. La barra de navegación se mantendrá fija en la página, permitiendo al usuario acceder fácilmente a las diferentes secciones del sitio web. Esta técnica es muy útil para mejorar la experiencia de navegación y la accesibilidad del sitio.
+</p><p>Este enfoque permite crear una barra de navegación fija en HTML, que mejora la experiencia de navegación y accesibilidad de un sitio web. El elemento </p>
+<nav>se utiliza para dividir la barra en dos bloques para el logo y el menú de navegación. Se puede añadir relleno para darle altura al contenido. Una vez implementada, la barra fija se mantendrá visible en todo momento, facilitando al usuario acceder a todas las secciones del sitio. Esta técnica es invaluable para optimizar la experiencia del usuario y la usabilidad del sitio web.
+</p><h2>¿Cómo hacer que el menú de navegación siempre esté visible?</h2>
+<p>Para lograr que el menú de navegación se mantenga siempre visible en tu página web, puedes utilizar algunas técnicas y estilos CSS. Una opción es utilizar la propiedad position: fixed en la clase navbar, lo cual hará que la barra de navegación se quede fija en la parte superior de la página, incluso al hacer scroll hacia abajo. También puedes quitar el margen inferior predeterminado de Bootstrap utilizando margin-bottom: 0px en la clase navbar. Estas opciones te permitirán tener un menú de navegación que siempre esté visible y facilite la navegación en tu sitio web.</p>
+<p>En resumen, implementar la propiedad position: fixed y eliminar el margen inferior predeterminado de Bootstrap en la barra de navegación son medidas efectivas para garantizar que el menú de navegación permanezca siempre visible en tu página web, mejorando así la experiencia de navegación de los usuarios.</p>
+<div style="clear:both; margin-top:0em; margin-bottom:1em;">
+    <a href="https://cssyjavascript.com.es/hacer/como-hacer-referencia-a-un-archivo-css-en-html/" target="_self" rel="dofollow" class="u04c0ae851730c248792e6c2a88aa1e9c">
+        <style>
+            .u04c0ae851730c248792e6c2a88aa1e9c , .u04c0ae851730c248792e6c2a88aa1e9c .postImageUrl , .u04c0ae851730c248792e6c2a88aa1e9c .centered-text-area {
+                min-height: 80px;
+                position: relative;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c , .u04c0ae851730c248792e6c2a88aa1e9c:hover , .u04c0ae851730c248792e6c2a88aa1e9c:visited , .u04c0ae851730c248792e6c2a88aa1e9c:active {
+                border: 0!important;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .clearfix:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c {
+                display: block;
+                transition: background-color 250ms;
+                webkit-transition: background-color 250ms;
+                width: 100%;
+                opacity: 1;
+                transition: opacity 250ms;
+                webkit-transition: opacity 250ms;
+                background-color: #2ECC71;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c:active , .u04c0ae851730c248792e6c2a88aa1e9c:hover {
+                opacity: 1;
+                transition: opacity 250ms;
+                webkit-transition: opacity 250ms;
+                background-color: #27AE60;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .centered-text-area {
+                width: 100%;
+                position: relative;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .ctaText {
+                border-bottom: 0 solid #fff;
+                color: #FFFFFF;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0;
+                padding: 0;
+                text-decoration: underline;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .postTitle {
+                color: #FFFFFF;
+                font-size: 16px;
+                font-weight: 600;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .ctaButton {
+                background-color: #27AE60!important;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 3px;
+                box-shadow: none;
+                font-size: 14px;
+                font-weight: bold;
+                line-height: 26px;
+                moz-border-radius: 3px;
+                text-align: center;
+                text-decoration: none;
+                text-shadow: none;
+                width: 80px;
+                min-height: 80px;
+                background: url(https://cssyjavascript.com.es/wp-content/plugins/intelly-related-posts/assets/images/simple-arrow.png)no-repeat;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c:hover .ctaButton {
+                background-color: #2ECC71!important;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .centered-text {
+                display: table;
+                height: 80px;
+                padding-left: 18px;
+                top: 0;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c .u04c0ae851730c248792e6c2a88aa1e9c-content {
+                display: table-cell;
+                margin: 0;
+                padding: 0;
+                padding-right: 108px;
+                position: relative;
+                vertical-align: middle;
+                width: 100%;
+            }
+
+            .u04c0ae851730c248792e6c2a88aa1e9c:after {
+                content: "";
+                display: block;
+                clear: both;
+            }
+        </style>
+        <div class="centered-text-area">
+            <div class="centered-text" style="float: left;">
+                <div class="u04c0ae851730c248792e6c2a88aa1e9c-content">
+                    <span class="ctaText"></span>
+                    &nbsp;<span class="postTitle">Trucos sobre cómo referenciar un archivo CSS en HTML: guía completa</span>
+                </div>
+            </div>
+        </div>
+        <div class="ctaButton"></div>
+    </a>
+</div>
+<h2>¿Cuál es la manera de crear un menú horizontal utilizando CSS?</h2>
+<p>Una manera de crear un menú horizontal utilizando CSS es a través del uso de la propiedad display: inline en los elementos de la lista </p>
+<li>
+    . Al aplicar esta propiedad, los elementos de la lista se mostrarán en una línea horizontal en lugar de en una columna. Además, se puede centrar la lista utilizando la propiedad text-align: center en la etiqueta <ul>o 
+</p><ol>. Esta técnica es útil para lograr un diseño limpio y organizado en la navegación de un sitio web.
+</p><p>Crear un menú horizontal utilizando CSS es una opción muy útil para mejorar la navegación de un sitio web. Con la propiedad display: inline en los elementos de lista </p>
+<li>
+    , logramos que se muestren en una línea horizontal. Además, al utilizar text-align: center en la etiqueta <ul>u 
+</p><ol>, conseguimos centrar la lista de manera estética. Esta técnica, sin duda, contribuye a un diseño más limpio y organizado, facilitando la experiencia del usuario.
+</p><h2>Diseño y desarrollo de un menú fijo con HTML y CSS: una guía paso a paso</h2>
+<p>El diseño y desarrollo de un menú fijo con HTML y CSS es una tarea fundamental para mejorar la navegabilidad y la experiencia del usuario en una página web. A través de una guía paso a paso, aprenderemos a crear un menú fijo que se mantenga visible en la parte superior de la pantalla mientras el usuario se desplaza por el sitio. Utilizando las propiedades adecuadas de CSS y aplicando estilos personalizados, lograremos un resultado atractivo y funcional que contribuirá al éxito de nuestra página web.</p>
+<p>De esto, es importante destacar que un menú fijo no solo brinda comodidad al usuario, sino que también facilita la navegación dentro de la página web. Con el uso adecuado de HTML y CSS, podremos crear un diseño atractivo y funcional que se adapte a las necesidades de nuestra página, mejorando así la experiencia del usuario y logrando que permanezca más tiempo en nuestro sitio.</p>
+<h2>Optimiza la navegación de tu sitio web con un menú fijo en HTML y CSS: consejos y ejemplos</h2>
+<p>Uno de los aspectos clave para mejorar la experiencia de navegación en un sitio web es contar con un menú fijo. Al utilizar HTML y CSS, es posible implementar esta función que permite que el menú se mantenga siempre visible al desplazarse por la página. Al optimizar la navegación, los usuarios podrán acceder de manera rápida y sencilla a todas las secciones del sitio, mejorando así la usabilidad y la eficiencia de la plataforma. A continuación, se presentan ejemplos y consejos para implementar un menú fijo en tu sitio web con HTML y CSS.</p>
+<p>De la función de menú fijo, es importante destacar la importancia de un diseño limpio y organizado. Utilizar colores contrastantes y fuentes legibles ayudará a los usuarios a identificar de manera rápida y sencilla las opciones de navegación. Además, es recomendable utilizar elementos visuales que indican la posición actual del usuario en el sitio. Estos consejos ayudarán a mejorar la experiencia de navegación y asegurar que los usuarios encuentren lo que están buscando de manera eficiente.</p>
+<div style="float: none;clear: both;width: 100%;position: relative;padding-bottom: 68%;padding-top: 25px;height: 0;">
+    <div class="rll-youtube-player" data-src="https://www.youtube.com/embed/d2__JvWNFbQ" data-id="d2__JvWNFbQ" data-query></div>
+    <noscript>
+        <iframe style="position: absolute; top: 0; left: 0; width: 100%;height: 100%;" src="https://www.youtube.com/embed/d2__JvWNFbQ" frameborder="0" allowfullscreen="allowfullscreen"></iframe>
+    </noscript>
+</div>
+<p></p>
+<p>La creación de un menú fijo en HTML y CSS es una habilidad fundamental para cualquier desarrollador web. Mediante la utilización de estas dos tecnologías, es posible diseñar y personalizar un menú que se mantenga estático en la parte superior de la página, proporcionando una navegación intuitiva y de fácil acceso para los usuarios. </p>
+<p>Para lograrlo, es necesario dominar los conceptos básicos de HTML para estructurar correctamente la página, así como también comprender los estilos y propiedades de CSS para darle el aspecto deseado al menú. Entre las opciones más comunes están el uso de posicionamiento fijo, estableciendo un ancho fijo para el menú y creando un efecto de desplazamiento suave al hacer scroll. </p>
+<p>Es importante tener en cuenta que, al diseñar un menú fijo, es necesario considerar la responsividad para garantizar una correcta visualización en diferentes dispositivos. Además, es recomendable optimizar el código y utilizar técnicas como la combinación de clases, el uso de pseudo elementos o la utilización de librerías como Bootstrap para agilizar el proceso de desarrollo. </p>
+<p>En resumen, aprender a hacer un menú fijo en HTML y CSS es fundamental para mejorar la experiencia de navegación de los usuarios y garantizar un diseño atractivo y funcional en cualquier proyecto web. Con conocimientos básicos de estas tecnologías y la aplicación de las mejores prácticas, es posible crear menús fijos personalizados que se adapten a las necesidades específicas de cada sitio web.</p>
+<div style="clear:both; margin-top:0em; margin-bottom:1em;">
+    <a href="https://cssyjavascript.com.es/hacer/como-hacer-que-una-imagen-sea-responsive-css/" target="_self" rel="dofollow" class="ufb0b20c5f2b7073337e58776b944368f">
+        <style>
+            .ufb0b20c5f2b7073337e58776b944368f , .ufb0b20c5f2b7073337e58776b944368f .postImageUrl , .ufb0b20c5f2b7073337e58776b944368f .centered-text-area {
+                min-height: 80px;
+                position: relative;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f , .ufb0b20c5f2b7073337e58776b944368f:hover , .ufb0b20c5f2b7073337e58776b944368f:visited , .ufb0b20c5f2b7073337e58776b944368f:active {
+                border: 0!important;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .clearfix:after {
+                content: "";
+                display: table;
+                clear: both;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f {
+                display: block;
+                transition: background-color 250ms;
+                webkit-transition: background-color 250ms;
+                width: 100%;
+                opacity: 1;
+                transition: opacity 250ms;
+                webkit-transition: opacity 250ms;
+                background-color: #2ECC71;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f:active , .ufb0b20c5f2b7073337e58776b944368f:hover {
+                opacity: 1;
+                transition: opacity 250ms;
+                webkit-transition: opacity 250ms;
+                background-color: #27AE60;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .centered-text-area {
+                width: 100%;
+                position: relative;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .ctaText {
+                border-bottom: 0 solid #fff;
+                color: #FFFFFF;
+                font-size: 16px;
+                font-weight: bold;
+                margin: 0;
+                padding: 0;
+                text-decoration: underline;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .postTitle {
+                color: #FFFFFF;
+                font-size: 16px;
+                font-weight: 600;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .ctaButton {
+                background-color: #27AE60!important;
+                color: #FFFFFF;
+                border: none;
+                border-radius: 3px;
+                box-shadow: none;
+                font-size: 14px;
+                font-weight: bold;
+                line-height: 26px;
+                moz-border-radius: 3px;
+                text-align: center;
+                text-decoration: none;
+                text-shadow: none;
+                width: 80px;
+                min-height: 80px;
+                background: url(https://cssyjavascript.com.es/wp-content/plugins/intelly-related-posts/assets/images/simple-arrow.png)no-repeat;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f:hover .ctaButton {
+                background-color: #2ECC71!important;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .centered-text {
+                display: table;
+                height: 80px;
+                padding-left: 18px;
+                top: 0;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f .ufb0b20c5f2b7073337e58776b944368f-content {
+                display: table-cell;
+                margin: 0;
+                padding: 0;
+                padding-right: 108px;
+                position: relative;
+                vertical-align: middle;
+                width: 100%;
+            }
+
+            .ufb0b20c5f2b7073337e58776b944368f:after {
+                content: "";
+                display: block;
+                clear: both;
+            }
+        </style>
+        <div class="centered-text-area">
+            <div class="centered-text" style="float: left;">
+                <div class="ufb0b20c5f2b7073337e58776b944368f-content">
+                    <span class="ctaText"></span>
+                    &nbsp;<span class="postTitle">Domina CSS: Haz que tus imágenes sean responsive en segundos</span>
+                </div>
+            </div>
+        </div>
+        <div class="ctaButton"></div>
+    </a>
+</div>
+<footer class="entry-footer">
+    <section class="entry-related">
+        <h3>Entradas relacionadas</h3>
+        <div class="flex flex-fluid">
+            <article id="post-12574" class="entry-item column-third">
+                <a href="https://cssyjavascript.com.es/hacer/como-hacer-una-pagina-web-profesional-con-html-y-css/" rel="bookmark">
+                    <img width="150" height="150" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20150%20150'%3E%3C/svg%3E" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Guía práctica de cómo crear una web profesional con HTML y CSS" decoding="async" title="Guía práctica de cómo crear una web profesional con HTML y CSS" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/Q7rJPuq4nuI-150x150.jpg"/>
+                    <noscript>
+                        <img width="150" height="150" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/Q7rJPuq4nuI-150x150.jpg" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Guía práctica de cómo crear una web profesional con HTML y CSS" decoding="async" title="Guía práctica de cómo crear una web profesional con HTML y CSS"/>
+                    </noscript>
+                    <h4 class="entry-title">Guía práctica de cómo crear una web profesional con HTML y CSS</h4>
+                </a>
+            </article>
+            <article id="post-12570" class="entry-item column-third">
+                <a href="https://cssyjavascript.com.es/hacer/como-hacer-una-lista-en-html-y-css/" rel="bookmark">
+                    <img width="150" height="150" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20150%20150'%3E%3C/svg%3E" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Domina el arte de crear listas en HTML y CSS: ¡Descubre cómo hacerlo en simples pasos!" decoding="async" title="Domina el arte de crear listas en HTML y CSS: ¡Descubre cómo hacerlo en simples pasos!" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/1WPK0rmtEbM-150x150.jpg"/>
+                    <noscript>
+                        <img width="150" height="150" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/1WPK0rmtEbM-150x150.jpg" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Domina el arte de crear listas en HTML y CSS: ¡Descubre cómo hacerlo en simples pasos!" decoding="async" title="Domina el arte de crear listas en HTML y CSS: ¡Descubre cómo hacerlo en simples pasos!"/>
+                    </noscript>
+                    <h4 class="entry-title">Domina el arte de crear listas en HTML y CSS: ¡Descubre cómo hacerlo en simples pasos!</h4>
+                </a>
+            </article>
+            <article id="post-12567" class="entry-item column-third">
+                <a href="https://cssyjavascript.com.es/hacer/como-hacer-una-caja-en-html-y-css/" rel="bookmark">
+                    <img width="150" height="150" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20150%20150'%3E%3C/svg%3E" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Crea una caja HTML y CSS con facilidad: descubre cómo hacerlo" decoding="async" title="Crea una caja HTML y CSS con facilidad: descubre cómo hacerlo" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/6c-_9OyyelE-150x150.jpg"/>
+                    <noscript>
+                        <img width="150" height="150" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/6c-_9OyyelE-150x150.jpg" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Crea una caja HTML y CSS con facilidad: descubre cómo hacerlo" decoding="async" title="Crea una caja HTML y CSS con facilidad: descubre cómo hacerlo"/>
+                    </noscript>
+                    <h4 class="entry-title">Crea una caja HTML y CSS con facilidad: descubre cómo hacerlo</h4>
+                </a>
+            </article>
+            <article id="post-12543" class="entry-item column-third">
+                <a href="https://cssyjavascript.com.es/hacer/como-hacer-degradado-en-css/" rel="bookmark">
+                    <img width="150" height="150" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20150%20150'%3E%3C/svg%3E" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Aprende a crear increíbles degradados en CSS de forma sencilla" decoding="async" title="Aprende a crear increíbles degradados en CSS de forma sencilla" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/mwn9sNaa65s-150x150.jpg"/>
+                    <noscript>
+                        <img width="150" height="150" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/mwn9sNaa65s-150x150.jpg" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Aprende a crear increíbles degradados en CSS de forma sencilla" decoding="async" title="Aprende a crear increíbles degradados en CSS de forma sencilla"/>
+                    </noscript>
+                    <h4 class="entry-title">Aprende a crear increíbles degradados en CSS de forma sencilla</h4>
+                </a>
+            </article>
+            <article id="post-12517" class="entry-item column-third">
+                <a href="https://cssyjavascript.com.es/hacer/como-hacer-una-pagina-web-con-html-css-y-php/" rel="bookmark">
+                    <img width="150" height="150" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20150%20150'%3E%3C/svg%3E" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Domina el arte de crear páginas web con HTML, CSS y PHP en solo 3 pasos" decoding="async" title="Domina el arte de crear páginas web con HTML, CSS y PHP en solo 3 pasos" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/pjJUZw0KKjM-150x150.jpg"/>
+                    <noscript>
+                        <img width="150" height="150" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/pjJUZw0KKjM-150x150.jpg" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Domina el arte de crear páginas web con HTML, CSS y PHP en solo 3 pasos" decoding="async" title="Domina el arte de crear páginas web con HTML, CSS y PHP en solo 3 pasos"/>
+                    </noscript>
+                    <h4 class="entry-title">Domina el arte de crear páginas web con HTML, CSS y PHP en solo 3 pasos</h4>
+                </a>
+            </article>
+            <article id="post-12515" class="entry-item column-third">
+                <a href="https://cssyjavascript.com.es/hacer/como-hacer-un-circulo-en-css/" rel="bookmark">
+                    <img width="150" height="150" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20150%20150'%3E%3C/svg%3E" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Domina CSS: Aprende cómo hacer un círculo perfecto en solo 3 pasos" decoding="async" title="Domina CSS: Aprende cómo hacer un círculo perfecto en solo 3 pasos" data-lazy-src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/SJbkLdFLuMg-150x150.jpg"/>
+                    <noscript>
+                        <img width="150" height="150" src="https://cssyjavascript.com.es/wp-content/uploads/2023/08/SJbkLdFLuMg-150x150.jpg" class="attachment-thumbnail size-thumbnail wp-post-image" alt="Domina CSS: Aprende cómo hacer un círculo perfecto en solo 3 pasos" decoding="async" title="Domina CSS: Aprende cómo hacer un círculo perfecto en solo 3 pasos"/>
+                    </noscript>
+                    <h4 class="entry-title">Domina CSS: Aprende cómo hacer un círculo perfecto en solo 3 pasos</h4>
+                </a>
+            </article>
+        </div>
+    </section>
+</footer>
+</div></div></main>
+<footer class="site-footer">
+    <div class="container">
+        <div class="widget-area-footer">
+            <div class="widget-area">
+                <section id="nav_menu-2" class="widget widget_nav_menu">
+                    <div class="menu-footer-container">
+                        <ul id="menu-footer" class="menu">
+                            <li id="menu-item-24" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-24">
+                                <a href="https://cssyjavascript.com.es/politica-de-privacidad/">Política de Privacidad</a>
+                            </li>
+                            <li id="menu-item-25" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-25">
+                                <a href="https://cssyjavascript.com.es/aviso-legal/">Aviso Legal</a>
+                            </li>
+                            <li id="menu-item-23" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-23">
+                                <a href="https://cssyjavascript.com.es/politica-de-cookies/">Política de Cookies</a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <div class="credits row">
+            <p>Toda la información que necesitas</p>
+        </div>
+    </div>
+</footer>
+<script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "WebSite",
+        "name": "Css y Javascript",
+        "alternateName": "Toda la información que necesitas",
+        "url": "https://cssyjavascript.com.es"
+    }</script>
+<script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Article",
+        "headline": "En la actualidad, el diseño de sitios web se ha vuelto crucial Read more",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://cssyjavascript.com.es/hacer/como-hacer-un-menu-fijo-en-html-y-css/"
+        },
+        "image": {
+            "@type": "ImageObject",
+            "url": "https://cssyjavascript.com.es/wp-content/uploads/2023/08/AP5rQmmcJh0.jpg",
+            "height": 1024,
+            "width": 1024				
+        },
+        "datePublished": "2023-11-16",
+        "dateModified": "2023-11-16",
+        "author": {
+            "@type": "Person",
+            "name": "Claudia Roldan"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Css y Javascript"
+        }
+    }</script>
+<div id="cookies-eu-wrapper">
+    <div id="cookies-eu-banner" data-wait-remove="250">
+        <div id="cookies-eu-label">
+            Esta web utiliza cookies propias para su correcto funcionamiento. Al hacer clic en el botón Aceptar, acepta el uso de estas tecnologías y el procesamiento de tus datos para estos propósitos. <a class="argpd-cookies-politica" rel="nofollow" id="cookies-eu-more" href="https://cssyjavascript.com.es/personalizar-cookies/">Más información</a>
+        </div>
+        <div id="cookies-eu-buttons">
+            <button id="cookies-eu-reject" class="cookies-eu-reject">Rechazar</button>
+            <button id="cookies-eu-accept" class="cookies-eu-accept">Aceptar</button>
+        </div>
+    </div>
+</div>
+<div id="cookies-eu-banner-closed">
+    <span>Privacidad</span>
+</div>
+<script type="rocketlazyloadscript" data-rocket-type="text/javascript" id="rocket-browser-checker-js-after">
+    
+/* <![CDATA[ */
+"use strict";var _createClass=function(){function defineProperties(target,props){for(var i=0;i<props.length;i++){var descriptor=props[i];descriptor.enumerable=descriptor.enumerable||!1,descriptor.configurable=!0,"value"in descriptor&&(descriptor.writable=!0),Object.defineProperty(target,descriptor.key,descriptor)}}return function(Constructor,protoProps,staticProps){return protoProps&&defineProperties(Constructor.prototype,protoProps),staticProps&&defineProperties(Constructor,staticProps),Constructor}}();function _classCallCheck(instance,Constructor){if(!(instance instanceof Constructor))throw new TypeError("Cannot call a class as a function")}var RocketBrowserCompatibilityChecker=function(){function RocketBrowserCompatibilityChecker(options){_classCallCheck(this,RocketBrowserCompatibilityChecker),this.passiveSupported=!1,this._checkPassiveOption(this),this.options=!!this.passiveSupported&&options}return _createClass(RocketBrowserCompatibilityChecker,[{key:"_checkPassiveOption",value:function(self){try{var options={get passive(){return!(self.passiveSupported=!0)}};window.addEventListener("test",null,options),window.removeEventListener("test",null,options)}catch(err){self.passiveSupported=!1}}},{key:"initRequestIdleCallback",value:function(){!1 in window&&(window.requestIdleCallback=function(cb){var start=Date.now();return setTimeout(function(){cb({didTimeout:!1,timeRemaining:function(){return Math.max(0,50-(Date.now()-start))}})},1)}),!1 in window&&(window.cancelIdleCallback=function(id){return clearTimeout(id)})}},{key:"isDataSaverModeOn",value:function(){return"connection"in navigator&&!0===navigator.connection.saveData}},{key:"supportsLinkPrefetch",value:function(){var elem=document.createElement("link");return elem.relList&&elem.relList.supports&&elem.relList.supports("prefetch")&&window.IntersectionObserver&&"isIntersecting"in IntersectionObserverEntry.prototype}},{key:"isSlowConnection",value:function(){return"connection"in navigator&&"effectiveType"in navigator.connection&&("2g"===navigator.connection.effectiveType||"slow-2g"===navigator.connection.effectiveType)}}]),RocketBrowserCompatibilityChecker}();
+/* ]]> */
+
+</script>
+<script type="text/javascript" id="rocket-preload-links-js-extra">
+    /* <![CDATA[ */
+    var RocketPreloadLinksConfig = {
+        "excludeUris": "\/(?:.+\/)?feed(?:\/(?:.+\/?)?)?$|\/(?:.+\/)?embed\/|\/(index\\.php\/)?wp\\-json(\/.*|$)|\/refer\/|\/go\/|\/recommend\/|\/recommends\/",
+        "usesTrailingSlash": "1",
+        "imageExt": "jpg|jpeg|gif|png|tiff|bmp|webp|avif|pdf|doc|docx|xls|xlsx|php",
+        "fileExt": "jpg|jpeg|gif|png|tiff|bmp|webp|avif|pdf|doc|docx|xls|xlsx|php|html|htm",
+        "siteUrl": "https:\/\/cssyjavascript.com.es",
+        "onHoverDelay": "100",
+        "rateThrottle": "3"
+    };
+    /* ]]> */
+</script>
+<script type="rocketlazyloadscript" data-rocket-type="text/javascript" id="rocket-preload-links-js-after">
+    
+/* <![CDATA[ */
+(function() {
+"use strict";var r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e},e=function(){function i(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}return function(e,t,n){return t&&i(e.prototype,t),n&&i(e,n),e}}();function i(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var t=function(){function n(e,t){i(this,n),this.browser=e,this.config=t,this.options=this.browser.options,this.prefetched=new Set,this.eventTime=null,this.threshold=1111,this.numOnHover=0}return e(n,[{key:"init",value:function(){!this.browser.supportsLinkPrefetch()||this.browser.isDataSaverModeOn()||this.browser.isSlowConnection()||(this.regex={excludeUris:RegExp(this.config.excludeUris,"i"),images:RegExp(".("+this.config.imageExt+")$","i"),fileExt:RegExp(".("+this.config.fileExt+")$","i")},this._initListeners(this))}},{key:"_initListeners",value:function(e){-1<this.config.onHoverDelay&&document.addEventListener("mouseover",e.listener.bind(e),e.listenerOptions),document.addEventListener("mousedown",e.listener.bind(e),e.listenerOptions),document.addEventListener("touchstart",e.listener.bind(e),e.listenerOptions)}},{key:"listener",value:function(e){var t=e.target.closest("a"),n=this._prepareUrl(t);if(null!==n)switch(e.type){case"mousedown":case"touchstart":this._addPrefetchLink(n);break;case"mouseover":this._earlyPrefetch(t,n,"mouseout")}}},{key:"_earlyPrefetch",value:function(t,e,n){var i=this,r=setTimeout(function(){if(r=null,0===i.numOnHover)setTimeout(function(){return i.numOnHover=0},1e3);else if(i.numOnHover>i.config.rateThrottle)return;i.numOnHover++,i._addPrefetchLink(e)},this.config.onHoverDelay);t.addEventListener(n,function e(){t.removeEventListener(n,e,{passive:!0}),null!==r&&(clearTimeout(r),r=null)},{passive:!0})}},{key:"_addPrefetchLink",value:function(i){return this.prefetched.add(i.href),new Promise(function(e,t){var n=document.createElement("link");n.rel="prefetch",n.href=i.href,n.onload=e,n.onerror=t,document.head.appendChild(n)}).catch(function(){})}},{key:"_prepareUrl",value:function(e){if(null===e||"object"!==(void 0===e?"undefined":r(e))||!1 in e||-1===["http:","https:"].indexOf(e.protocol))return null;var t=e.href.substring(0,this.config.siteUrl.length),n=this._getPathname(e.href,t),i={original:e.href,protocol:e.protocol,origin:t,pathname:n,href:t+n};return this._isLinkOk(i)?i:null}},{key:"_getPathname",value:function(e,t){var n=t?e.substring(this.config.siteUrl.length):e;return n.startsWith("/")||(n="/"+n),this._shouldAddTrailingSlash(n)?n+"/":n}},{key:"_shouldAddTrailingSlash",value:function(e){return this.config.usesTrailingSlash&&!e.endsWith("/")&&!this.regex.fileExt.test(e)}},{key:"_isLinkOk",value:function(e){return null!==e&&"object"===(void 0===e?"undefined":r(e))&&(!this.prefetched.has(e.href)&&e.origin===this.config.siteUrl&&-1===e.href.indexOf("?")&&-1===e.href.indexOf("#")&&!this.regex.excludeUris.test(e.href)&&!this.regex.images.test(e.href))}}],[{key:"run",value:function(){"undefined"!=typeof RocketPreloadLinksConfig&&new n(new RocketBrowserCompatibilityChecker({capture:!0,passive:!0}),RocketPreloadLinksConfig).init()}}]),n}();t.run();
+}());
+/* ]]> */
+
+</script>
+<script type="rocketlazyloadscript" data-rocket-type="text/javascript" src="https://cssyjavascript.com.es/wp-content/themes/orbital-go/assets/js/main.min.js?ver=20190101" id="orbital-main-js" defer></script>
+<script type="rocketlazyloadscript" data-rocket-type="text/javascript">
+    window.addEventListener('DOMContentLoaded', function() {
+jQuery(function ($) {
+    'use strict';
+
+    window.Adapta_RGPD = window.Adapta_RGPD || {};
+
+    Adapta_RGPD.getCookie= function(name) {
+        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : null;
+    }
+
+    Adapta_RGPD.setCookie= function (name, value) {
+      var date = new Date();
+      date.setTime(date.getTime() + this.cookieTimeout);
+      
+      document.cookie = name + '=' + value + ';expires=' + date.toUTCString() + ';path=/';
+    };
+
+    Adapta_RGPD.deleteCookie = function (name) {
+        var hostname = document.location.hostname.replace(/^www\./, '');
+        var nacked = hostname.replace(/^[^.]+\./g, "");
+        var commonSuffix = '; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/';
+
+        // remove cookies that match name
+        document.cookie = name + '=; domain=.' + hostname + commonSuffix;
+        document.cookie = name + '=; domain=.' + nacked + commonSuffix;
+        document.cookie = name + '=' + commonSuffix;
+
+        // search and remove all cookies starts with name
+        document.cookie.split(';')
+        .filter(function(el) {
+            return el.trim().indexOf(name) === 0;
+        })
+        .forEach(function(el) {
+            var [k,v] = el.split('=');
+            document.cookie = k + '=; domain=.' + hostname + commonSuffix;
+            document.cookie = k + '=; domain=.' + nacked + commonSuffix;            
+            document.cookie = k + '=' + commonSuffix;
+        })
+    };
+
+    Adapta_RGPD.onlyUnique= function(value, index, self) {
+      return self.indexOf(value) === index;
+    };
+
+    Adapta_RGPD.removeItemOnce = function(arr, value) {
+      var index = arr.indexOf(value);
+      if (index > -1) {
+        arr.splice(index, 1);
+      }
+      return arr;
+    };
+
+    // load events.
+    Adapta_RGPD.loadEvents= function(){
+        $("[id^='custom-cookies-accept']").click(function(){
+            var consents= new Array();  
+            var value= Adapta_RGPD.getCookie('hasConsents');
+            if ( null != value && value.length) {
+                consents = value.split("+")
+            }
+            
+            var consent = this.dataset.consent;
+            consents.push(consent)
+            
+            var unique= consents.filter(Adapta_RGPD.onlyUnique);
+            Adapta_RGPD.setCookie('hasConsents', unique.join('+'));
+            Adapta_RGPD.setCookie('hasConsent', true);
+        });
+
+        $("[id^='custom-cookies-reject'],#custom-cookies-eu-reject,#cookies-eu-reject").click(function(){
+            const trackingCookiesNames = ['__utma', '__utmb', '__utmc', '__utmt', '__utmv', '__utmz', '_ga', '_gat', '_gid', '_fbp'];   
+            var value= Adapta_RGPD.getCookie('hasConsents');
+            if ( null == value ) {
+                return
+            }
+
+            // consent is the consent to remove. Ej ANLT
+            var consent = ('undefined' !== typeof this.dataset && this.dataset.hasOwnProperty('consent'))?this.dataset.consent:null;
+            if (consent != null) {              
+                var consents = value.split("+")         
+                consents=Adapta_RGPD.removeItemOnce(consents, consent)
+                Adapta_RGPD.setCookie('hasConsents', consents.join('+'));
+            }
+            
+            if ( 'ANLTCS' == consent || null == consent ) {
+                trackingCookiesNames.map(Adapta_RGPD.deleteCookie);
+            }
+
+            // update api consent
+            var consentUUIDCookie = Adapta_RGPD.getCookie('argpd_consentUUID');
+            if ( null == consentUUIDCookie || consentUUIDCookie.length == 0) {
+                return;
+            }
+        
+            var ajaxurl = 'https://cssyjavascript.com.es/wp-admin/admin-ajax.php';
+            var data = {
+                action: 'cookie_consent',
+                security: '3ed11c0209',
+                uri: window.location.href,
+                'update': 1,
+                'statement': $("#cookies-eu-label").text(),
+                'purpose-necessary': 1,
+                'purpose-non-necessary': 0,
+                'purpose-analytics': 0,
+                'purpose-marketing': 0,
+                'purpose-advertisement': 0,
+            };              
+            $.post( ajaxurl, data, function(response) {                 
+                
+                if ( undefined !== response.success && false === response.success ) {                       
+                    return;
+                }       
+            });
+        });
+
+        // reject all event
+        $("#cookies-eu-banner-closed, .cookies-eu-banner-closed" ).click(function(){
+            var date = new Date();
+            date.setTime(date.getTime() + 33696000000);
+            document.cookie = 'hasConsent' + '=' + 'configure' + ';expires=' + date.toUTCString() + ';path=/';
+            window.location.reload();
+        });
+
+         
+
+        // toggle first layer privacy
+            }
+
+    // init 
+    Adapta_RGPD.init = function(){
+        jQuery(document).ready(function($) {
+            // Prevent for search engine execute ajax function.
+            var bots = /bot|crawler|spider|crawling/i;
+            var isBot = bots.test(navigator.userAgent);
+            if ( isBot ) {
+                return;
+            }
+
+            // event if cookies-reload option
+            
+            // code to launch when user accepts cookies
+            new CookiesEuBanner(function (update=false) {
+                var ajaxurl = 'https://cssyjavascript.com.es/wp-admin/admin-ajax.php';
+                var data = {
+                    action: 'cookie_consent',
+                    security: '3ed11c0209',
+                    uri: window.location.href,
+                    'update': (update == true)?1:0,
+                    'statement': $("#cookies-eu-label").text(),
+                    'purpose-necessary': 1,
+                    'purpose-non-necessary': 0,
+                    'purpose-analytics': '0',
+                    'purpose-marketing': '0',
+                    'purpose-advertisement': '0',
+                };              
+                $.post( ajaxurl, data, function(response) {
+                    
+                    if ( undefined !== response.success && false === response.success ) {                       
+                        return;
+                    }       
+
+                    var data = jQuery.parseJSON(response);
+                    if (data == null) {
+                        return
+                    }
+
+                    // set cookie argpd_consentUUID
+                    if (data.hasOwnProperty('uuid')) {
+                        Adapta_RGPD.setCookie('argpd_consentUUID', data['uuid']);
+                    }
+
+                    // append scripts
+                    if (data.hasOwnProperty('scripts-reject')) {
+                        var scripts = data['scripts-reject'].split(",");
+                        scripts.forEach(function(src){
+                            var script = document.createElement( 'script' );
+                            script.setAttribute( "src", src );
+                            document.getElementsByTagName( "head" )[0].appendChild( script );
+                        });             
+                    }
+                });             
+            }, true);
+
+            Adapta_RGPD.loadEvents();
+        });
+    }
+    Adapta_RGPD.init();
+});
+});
+</script>
+<script>
+    window.lazyLoadOptions = [{
+        elements_selector: "img[data-lazy-src],.rocket-lazyload,iframe[data-lazy-src]",
+        data_src: "lazy-src",
+        data_srcset: "lazy-srcset",
+        data_sizes: "lazy-sizes",
+        class_loading: "lazyloading",
+        class_loaded: "lazyloaded",
+        threshold: 300,
+        callback_loaded: function(element) {
+            if (element.tagName === "IFRAME" && element.dataset.rocketLazyload == "fitvidscompatible") {
+                if (element.classList.contains("lazyloaded")) {
+                    if (typeof window.jQuery != "undefined") {
+                        if (jQuery.fn.fitVids) {
+                            jQuery(element).parent().fitVids()
+                        }
+                    }
+                }
+            }
+        }
+    }, {
+        elements_selector: ".rocket-lazyload",
+        data_src: "lazy-src",
+        data_srcset: "lazy-srcset",
+        data_sizes: "lazy-sizes",
+        class_loading: "lazyloading",
+        class_loaded: "lazyloaded",
+        threshold: 300,
+    }];
+    window.addEventListener('LazyLoad::Initialized', function(e) {
+        var lazyLoadInstance = e.detail.instance;
+        if (window.MutationObserver) {
+            var observer = new MutationObserver(function(mutations) {
+                var image_count = 0;
+                var iframe_count = 0;
+                var rocketlazy_count = 0;
+                mutations.forEach(function(mutation) {
+                    for (var i = 0; i < mutation.addedNodes.length; i++) {
+                        if (typeof mutation.addedNodes[i].getElementsByTagName !== 'function') {
+                            continue
+                        }
+                        if (typeof mutation.addedNodes[i].getElementsByClassName !== 'function') {
+                            continue
+                        }
+                        images = mutation.addedNodes[i].getElementsByTagName('img');
+                        is_image = mutation.addedNodes[i].tagName == "IMG";
+                        iframes = mutation.addedNodes[i].getElementsByTagName('iframe');
+                        is_iframe = mutation.addedNodes[i].tagName == "IFRAME";
+                        rocket_lazy = mutation.addedNodes[i].getElementsByClassName('rocket-lazyload');
+                        image_count += images.length;
+                        iframe_count += iframes.length;
+                        rocketlazy_count += rocket_lazy.length;
+                        if (is_image) {
+                            image_count += 1
+                        }
+                        if (is_iframe) {
+                            iframe_count += 1
+                        }
+                    }
+                });
+                if (image_count > 0 || iframe_count > 0 || rocketlazy_count > 0) {
+                    lazyLoadInstance.update()
+                }
+            }
+            );
+            var b = document.getElementsByTagName("body")[0];
+            var config = {
+                childList: !0,
+                subtree: !0
+            };
+            observer.observe(b, config)
+        }
+    }, !1)
+</script>
+<script data-no-minify="1" async src="https://cssyjavascript.com.es/wp-content/plugins/wp-rocket/assets/js/lazyload/17.5/lazyload.min.js"></script>
+<script>
+    function lazyLoadThumb(e) {
+        var t = '<img data-lazy-src="https://i.ytimg.com/vi/ID/hqdefault.jpg" alt="" width="480" height="360"><noscript><img src="https://i.ytimg.com/vi/ID/hqdefault.jpg" alt="" width="480" height="360"></noscript>'
+          , a = '<button class="play" aria-label="play Youtube video"></button>';
+        return t.replace("ID", e) + a
+    }
+    function lazyLoadYoutubeIframe() {
+        var e = document.createElement("iframe")
+          , t = "ID?autoplay=1";
+        t += 0 === this.parentNode.dataset.query.length ? '' : '&' + this.parentNode.dataset.query;
+        e.setAttribute("src", t.replace("ID", this.parentNode.dataset.src)),
+        e.setAttribute("frameborder", "0"),
+        e.setAttribute("allowfullscreen", "1"),
+        e.setAttribute("allow", "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"),
+        this.parentNode.parentNode.replaceChild(e, this.parentNode)
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+        var e, t, p, a = document.getElementsByClassName("rll-youtube-player");
+        for (t = 0; t < a.length; t++)
+            e = document.createElement("div"),
+            e.setAttribute("data-id", a[t].dataset.id),
+            e.setAttribute("data-query", a[t].dataset.query),
+            e.setAttribute("data-src", a[t].dataset.src),
+            e.innerHTML = lazyLoadThumb(a[t].dataset.id),
+            a[t].appendChild(e),
+            p = e.querySelector('.play'),
+            p.onclick = lazyLoadYoutubeIframe
+    });
+</script>
+</body></html>
