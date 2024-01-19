@@ -1,5 +1,5 @@
 import {Request,Response} from 'express';
-import pool from '../database'; //acceso a la base de datos
+const pool = require('../database'); //acceso a la base de datos
 class Recursos_educativosController
 {
     public async createRecurso_educativo(req: Request, res: Response): Promise<void> {

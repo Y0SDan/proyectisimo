@@ -1,5 +1,5 @@
 import {Request,Response} from 'express';
-import pool from '../database'; //acceso a la base de datos
+const pool = require('../database'); //acceso a la base de datos
 class DonativoController
 {
     public async createDonativo(req: Request, res: Response): Promise<void> {

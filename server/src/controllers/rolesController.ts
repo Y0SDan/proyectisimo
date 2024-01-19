@@ -1,5 +1,5 @@
 import {Request,Response} from 'express';
-import pool from '../database'; //acceso a la base de datos
+const pool = require('../database'); //acceso a la base de datos
 class RolesController
 {
 public async mostrar_todos_roles(req: Request, res: Response ): Promise<void>{

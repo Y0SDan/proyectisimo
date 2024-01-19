@@ -1,5 +1,5 @@
 import {Request,Response} from 'express';
-import pool from '../database'; //acceso a la base de datos
+const pool = require('../database');
 class ContactoController
 {
     public async createContacto(req: Request, res: Response): Promise<void> {
