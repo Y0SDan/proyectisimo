@@ -20,8 +20,8 @@ class ContactoController {
     }
     mostrarContactos(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const respuesta = yield pool.query('SELECT * FROM contacto');
-            res.json(respuesta);
+            const respuesta = yield pool.query('SELECT * FROM contacto;');
+            res.json(respuesta.rows);
         });
     }
     buscarContacto(req, res) {

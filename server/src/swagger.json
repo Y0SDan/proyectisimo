@@ -9,7 +9,7 @@
             "url": "https://opensource.org/licenses/MIT"
         }
     },
-    "host": "localhost:3000",
+    "host": "hifas-de-grana.onrender.com",
     "basePath": "",
     "tags": [
         {
@@ -23,362 +23,359 @@
         {
             "name": "donativos",
             "description": "API para los donativos"
-        }           
+        }
     ],
     "schemes": [
-        "http"
+        "https"
     ],
-    "consumes":[
+    "consumes": [
         "application/json"
     ],
-    "produces" :[
+    "produces": [
         "application/json"
     ],
-    "paths":
-    {
-        "/api/usuarios/mostrarTodosUsuarios":{
+    "paths": {
+        "/api/usuarios/mostrarTodosUsuarios": {
             "get": {
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Listado de todos los usuarios en el CIIT.",
-                "description": "<p>Servicio que devuelve la información detallada de todos los usuarios que existen en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son los usuarios existentes en el CIIT?</strong></em></p>",
+                "summary": "Listado de todos los usuarios en el la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de todos los usuarios que existen en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son los usuarios existentes en la base de datos?</strong></em></p>",
                 "responses": {
-                    "200":{
+                    "200": {
                         "description": "OK",
                         "examples": {
                             "application/json": [
                                 {
-                                "id": 1,
-                                "nombre": "Juan Perez",
-                                "correo": "juanp@gmail.com",
-                                "contrasena" : "hola123",
-                                "id_puesto" : 1
+                                    "id": 1,
+                                    "nombre": "Juan Perez",
+                                    "correo": "juanp@gmail.com",
+                                    "contrasena": "hola123",
+                                    "id_puesto": 1
                                 }
                             ]
                         },
-                        "schema":{
+                        "schema": {
                             "$ref": "#/definitions/Usuarios"
                         }
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     },
-                    "parameters":[{
-                        "description": "apiKey",
-                        "type": "string",
-                        "in": "header",
-                        "name": "Authorization",
-                        "default": "Bearer eyJhbGciOiJIUzI1NiJ9.ZXJpa3VlQGdtYWlsLmNvbQ.v7atXtnZ9F14ahwqCSjYKQirsvjs5aWQ4MrPz-BCBSk"
-                    }]
+                    "parameters": [{
+                            "description": "apiKey",
+                            "type": "string",
+                            "in": "header",
+                            "name": "Authorization",
+                            "default": "Bearer eyJhbGciOiJIUzI1NiJ9.ZXJpa3VlQGdtYWlsLmNvbQ.v7atXtnZ9F14ahwqCSjYKQirsvjs5aWQ4MrPz-BCBSk"
+                        }]
                 }
             }
         },
-        "/api/usuarios/obtenerUsuario/{id}":{
+        "/api/usuarios/obtenerUsuario/{id}": {
             "get": {
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Obtiene un usuario del CIIT.",
-                "description": "<p>Servicio que devuelve la información detallada de un usuario existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Existe el usuario en el CIIT?</strong></em></p>",
+                "summary": "Obtiene un usuario de la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de un usuario existente en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Existe el usuario en la base de datos?</strong></em></p>",
                 "responses": {
-                    "200":{
+                    "200": {
                         "description": "OK",
                         "examples": {
                             "application/json": [
                                 {
-                                "id": 1,
-                                "nombre": "Juan Perez",
-                                "correo": "juanp@gmail.com",
-                                "contrasena" : "hola123",
-                                "id_puesto" : 1
+                                    "id": 1,
+                                    "nombre": "Juan Perez",
+                                    "correo": "juanp@gmail.com",
+                                    "contrasena": "hola123",
+                                    "id_puesto": 1
                                 }
                             ]
                         },
-                        "schema":{
+                        "schema": {
                             "$ref": "#/definitions/Usuario"
                         }
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     }
                 },
-                "parameters" :[
+                "parameters": [
                     {
-                        "name" : "id",
-                        "in" : "path",
-                        "requiered" : "true",
-                        "description" : "Id del ususario.",
-                        "type" : "number",
-                        "default" : "0"
+                        "name": "id",
+                        "in": "path",
+                        "requiered": "true",
+                        "description": "Id del ususario.",
+                        "type": "number",
+                        "default": "0"
                     }
                 ]
             }
         },
-        "/api/usuarios/crearUsuario" :{
-            "post" :{
-                "summary" : "Crear un usuario",
-                "operationId" : "create",
-                "produces" : [
+        "/api/usuarios/crearUsuario": {
+            "post": {
+                "summary": "Crear un usuario",
+                "operationId": "create",
+                "produces": [
                     "application/json"
                 ],
-                "parameters" : [
+                "parameters": [
                     {
-                        "name" : "Usuario",
-                        "in" : "body",
-                        "description" : "Usuario agregado",
-                        "requiered" : true,
-                        "schema" : {
-                            "$ref" : "#/definitions/NuevoUsuario"
+                        "name": "Usuario",
+                        "in": "body",
+                        "description": "Usuario agregado",
+                        "requiered": true,
+                        "schema": {
+                            "$ref": "#/definitions/NuevoUsuario"
                         }
                     }
                 ],
-                "tags" : ["Usuarios"],
-                "responses" : {
-                    "200" : {
-                        "description" : "Usuario agregado"
-                    },
-                    "403":{
-                        "description" : "Prohibido"
-                    }
-                }
-            }
-        },
-        "/api/usuarios/actualizarUsuario/{id}" :{
-            "put" :{
-                "summary" : "Modifica usuario.",
-                "operationId" : "update",
-                "consumes" :[
-                    "application/json"
-                ],
-                "produces" :[
-                    "application/json"
-                ],
-                "parameters" :[
-                    {
-                        "name" : "id",
-                        "in" : "path",
-                        "description" : "Id del ususario.",
-                        "requiered" : true,
-                        "default" : 0
-                    },
-                    {
-                        "name" : "Usuario",
-                        "in" : "body",
-                        "description" : "Usuario modificado.",
-                        "requiered" : true,
-                        "schema" : {
-                            "$ref" : "#/definitions/NuevoUsuario"
-                        }
-                    }
-                ],
-                "tags" : ["Usuarios"],
+                "tags": ["Usuarios"],
                 "responses": {
-                    "200":{
-                        "description": "OK"
+                    "200": {
+                        "description": "Usuario agregado"
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     }
                 }
             }
         },
-        "/api/usuarios/eliminarUsuario/{id}":{
+        "/api/usuarios/actualizarUsuario/{id}": {
+            "put": {
+                "summary": "Modifica usuario.",
+                "operationId": "update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id del ususario.",
+                        "requiered": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "Usuario",
+                        "in": "body",
+                        "description": "Usuario modificado.",
+                        "requiered": true,
+                        "schema": {
+                            "$ref": "#/definitions/NuevoUsuario"
+                        }
+                    }
+                ],
+                "tags": ["Usuarios"],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Prohibido"
+                    }
+                }
+            }
+        },
+        "/api/usuarios/eliminarUsuario/{id}": {
             "delete": {
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Elimina un usuario del CIIT.",
-                "description": "<p>Servicio que elimina un usuario existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Qué usuario se eliminará en el CIIT?</strong></em></p>",
+                "summary": "Elimina un usuario del la base de datos.",
+                "description": "<p>Servicio que elimina un usuario existente en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Qué usuario se eliminará en la base de datos?</strong></em></p>",
                 "responses": {
-                    "200":{
+                    "200": {
                         "description": "OK"
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     }
                 },
-                "parameters" :[
+                "parameters": [
                     {
-                        "name" : "id",
-                        "in" : "path",
-                        "requiered" : "true",
-                        "description" : "Id del ususario.",
-                        "type" : "number",
-                        "default" : "0"
+                        "name": "id",
+                        "in": "path",
+                        "requiered": "true",
+                        "description": "Id del ususario.",
+                        "type": "number",
+                        "default": "0"
                     }
                 ]
             }
         },
-        "/api/roles/mostrarTodosRoles":{
-            "get" : {
-                "tags" : [
-                    "Roles"
-                ],
-                "summary" : "Listado de todos los roles en el CIIT",
-                "description" : "<p>Servicio que devuelve la información detallada de todos los roles que existen en una empresa en el en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son las roles existentes en el CIIT?</strong></em></p>",
-                "responses" : {
-                    "200" : {
-                        "description" : "OK",
-                        "examples" : {
-                            "application/json" : [
-                                {
-                                    "id" : 2,
-                                    "puesto" : "Gerente"
-                                }
-                            ]
-                        },
-                        "schema":{
-                            "$ref": "#/definitions/Roles"
-                        }
-                    },
-                    "403":{
-                        "description": "Prohibido"
-                    }
-                }
-            }
-        },
-        "/api/roles/obtenerRol/{id}":{
+        "/api/roles/mostrarTodosRoles": {
             "get": {
                 "tags": [
                     "Roles"
                 ],
-                "summary": "Obtiene un rol dentro del CIIT.",
-                "description": "<p>Servicio que devuelve la información detallada de un rol existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Existe el rol en el CIIT?</strong></em></p>",
+                "summary": "Listado de todos los roles en la base de datos",
+                "description": "<p>Servicio que devuelve la información detallada de todos los roles que existen en una empresa en el en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son las roles existentes en la base de datos?</strong></em></p>",
                 "responses": {
-                    "200":{
+                    "200": {
                         "description": "OK",
                         "examples": {
                             "application/json": [
                                 {
-                                    "id" : 2,
-                                    "puesto" : "Gerente"
+                                    "id": 2,
+                                    "puesto": "Gerente"
                                 }
                             ]
                         },
-                        "schema":{
+                        "schema": {
+                            "$ref": "#/definitions/Roles"
+                        }
+                    },
+                    "403": {
+                        "description": "Prohibido"
+                    }
+                }
+            }
+        },
+        "/api/roles/obtenerRol/{id}": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Obtiene un rol dentro de la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de un rol existente en la base de datos .</p><p>&nbsp;</p><p><em><strong>¿Existe el rol en el la base de datos?</strong></em></p>",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "examples": {
+                            "application/json": [
+                                {
+                                    "id": 2,
+                                    "puesto": "Gerente"
+                                }
+                            ]
+                        },
+                        "schema": {
                             "$ref": "#/definitions/Rol"
                         }
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     }
                 },
-                "parameters" :[
+                "parameters": [
                     {
-                        "name" : "id",
-                        "in" : "path",
-                        "requiered" : "true",
-                        "description" : "Id del rol.",
-                        "type" : "number",
-                        "default" : "0"
+                        "name": "id",
+                        "in": "path",
+                        "requiered": "true",
+                        "description": "Id del rol.",
+                        "type": "number",
+                        "default": "0"
                     }
                 ]
             }
         },
-        "/api/roles/crearRol" :{
-            "post" :{
-                "summary" : "Crear un rol",
-                "operationId" : "create",
-                "produces" : [
+        "/api/roles/crearRol": {
+            "post": {
+                "summary": "Crear un rol",
+                "operationId": "create",
+                "produces": [
                     "application/json"
                 ],
-                "parameters" : [
+                "parameters": [
                     {
-                        "name" : "Rol",
-                        "in" : "body",
-                        "description" : "Rol agregado",
-                        "requiered" : true,
-                        "schema" : {
-                            "$ref" : "#/definitions/NuevoRol"
+                        "name": "Rol",
+                        "in": "body",
+                        "description": "Rol agregado",
+                        "requiered": true,
+                        "schema": {
+                            "$ref": "#/definitions/NuevoRol"
                         }
                     }
                 ],
-                "tags" : ["Roles"],
-                "responses" : {
-                    "200" : {
-                        "description" : "Rol agregado"
-                    },
-                    "403":{
-                        "description" : "Prohibido"
-                    }
-                }
-            }
-        },
-        "/api/roles/actualizarRol/{id}" :{
-            "put" :{
-                "summary" : "Modifica rol.",
-                "operationId" : "update",
-                "consumes" :[
-                    "application/json"
-                ],
-                "produces" :[
-                    "application/json"
-                ],
-                "parameters" :[
-                    {
-                        "name" : "id",
-                        "in" : "path",
-                        "description" : "Id del rol.",
-                        "requiered" : true,
-                        "default" : 0
-                    },
-                    {
-                        "name" : "Rol",
-                        "in" : "body",
-                        "description" : "Rol modificado.",
-                        "requiered" : true,
-                        "schema" : {
-                            "$ref" : "#/definitions/NuevoRol"
-                        }
-                    }
-                ],
-                "tags" : ["Roles"],
+                "tags": ["Roles"],
                 "responses": {
-                    "200":{
-                        "description": "OK"
+                    "200": {
+                        "description": "Rol agregado"
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     }
                 }
             }
         },
-        "/api/roles/eliminarRol/{id}":{
+        "/api/roles/actualizarRol/{id}": {
+            "put": {
+                "summary": "Modifica rol.",
+                "operationId": "update",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Id del rol.",
+                        "requiered": true,
+                        "default": 0
+                    },
+                    {
+                        "name": "Rol",
+                        "in": "body",
+                        "description": "Rol modificado.",
+                        "requiered": true,
+                        "schema": {
+                            "$ref": "#/definitions/NuevoRol"
+                        }
+                    }
+                ],
+                "tags": ["Roles"],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "403": {
+                        "description": "Prohibido"
+                    }
+                }
+            }
+        },
+        "/api/roles/eliminarRol/{id}": {
             "delete": {
                 "tags": [
                     "Roles"
                 ],
-                "summary": "Elimina un rol del CIIT.",
-                "description": "<p>Servicio que elimina un rol existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Qué rol se eliminará en el CIIT?</strong></em></p>",
+                "summary": "Elimina un rol de la base de datos.",
+                "description": "<p>Servicio que elimina un rol existente en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Qué rol se eliminará en la base de datos?</strong></em></p>",
                 "responses": {
-                    "200":{
+                    "200": {
                         "description": "OK"
                     },
-                    "403":{
+                    "403": {
                         "description": "Prohibido"
                     }
                 },
-                "parameters" :[
+                "parameters": [
                     {
-                        "name" : "id",
-                        "in" : "path",
-                        "requiered" : "true",
-                        "description" : "Id del rol.",
-                        "type" : "number",
-                        "default" : "0"
+                        "name": "id",
+                        "in": "path",
+                        "requiered": "true",
+                        "description": "Id del rol.",
+                        "type": "number",
+                        "default": "0"
                     }
                 ]
             }
-        },        
-        "/api/contacto/crearContacto":
-        {
-            "post":
-            {
+        },
+        "/api/contacto/crearContacto": {
+            "post": {
                 "summary": "creando un nuevo contacto",
                 "operationId": "crearContacto",
                 "produces": ["application/json"],
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "contacto",
                         "in": "body",
@@ -420,10 +417,8 @@
                 "description": "añade un contacto a la base de datos"
             }
         },
-        "/api/contacto/mostrarContactos":
-        {
-            "get":
-            {
+        "/api/contacto/mostrarContactos": {
+            "get": {
                 "summary": "Muestra a los contactos",
                 "operationId": "mostrarContactos",
                 "produces": ["application/json"],
@@ -432,9 +427,14 @@
                     "200": {
                         "description": "contactos",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/contacto"
+                            "type": "object",
+                            "properties":{
+                                "rows":{
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Row" 
+                                    }
+                                }
                             }
                         },
                         "examples": {
@@ -458,7 +458,7 @@
                         "description": "Error al mostrar contactos"
                     }
                 },
-                "description": "Muestra a aquellos ususarios interesados en contactar con el colectivo"
+                "description": "Muestra a aquellos ususarios interesados en contactar con el colectivo y ser una hifa mas "
             }
         },
         "/api/contacto/eliminarContacto/{id}": {
@@ -485,7 +485,7 @@
                         "description": "Error al eliminar contacto"
                     }
                 },
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "id",
                         "in": "path",
@@ -539,13 +539,11 @@
                 "description": "Actualiza un contacto"
             }
         },
-        "/api/contacto/buscarContacto/{id}":
-        {
-            "get":
-            {
+        "/api/contacto/buscarContacto/{id}": {
+            "get": {
                 "summary": "Busca un contacto",
                 "operationId": "buscarContacto",
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "id",
                         "in": "path",
@@ -576,7 +574,7 @@
                 "summary": "Crea un recurso educativo",
                 "operationId": "crearRecurso_educativo",
                 "produces": ["application/json"],
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "recurso_educativo",
                         "in": "body",
@@ -601,11 +599,9 @@
                 },
                 "description": "Crea un recurso educativo"
             }
-        },        
-        "/api/recursos_educativos/mostrarRecursos_educativos":
-        {
-            "get":
-            {
+        },
+        "/api/recursos_educativos/mostrarRecursos_educativos": {
+            "get": {
                 "summary": "Muestra los recursos educativos",
                 "operationId": "mostrarRecursos_educativos",
                 "produces": ["application/json"],
@@ -624,10 +620,8 @@
                 "description": "Muestra los recursos educativos"
             }
         },
-        "/api/recursos_educativos/eliminarRecurso_educativo/{id}":
-        {
-            "delete":
-            {
+        "/api/recursos_educativos/eliminarRecurso_educativo/{id}": {
+            "delete": {
                 "tags": ["recursos_educativos"],
                 "summary": "Elimina un recurso educativo",
                 "description": "Elimina un recurso educativo",
@@ -642,7 +636,7 @@
                         "description": "Error al eliminar recurso educativo"
                     }
                 },
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "id",
                         "in": "path",
@@ -656,15 +650,13 @@
                 ]
             }
         },
-        "/api/recursos_educativos/actualizarRecurso_educativo/{id}":
-        {
-            "put":
-            {
+        "/api/recursos_educativos/actualizarRecurso_educativo/{id}": {
+            "put": {
                 "summary": "Actualiza un recurso educativo",
                 "operationId": "actualizarRecurso_educativo",
                 "consumes": ["application/json"],
                 "produces": ["application/json"],
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "id",
                         "in": "path",
@@ -699,14 +691,12 @@
                 "description": "Actualiza un recurso educativo"
             }
         },
-        "/api/donativos/crearDonativo/":
-        {
-            "post":
-            {
+        "/api/donativos/crearDonativo/": {
+            "post": {
                 "summary": "Crea un donativo",
                 "operationId": "crearDonativo",
                 "produces": ["application/json"],
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "donativo",
                         "in": "body",
@@ -754,10 +744,8 @@
                 "description": "Crea un donativo"
             }
         },
-        "/api/donativos/mostrarDonativos":
-        {
-            "get":
-            {
+        "/api/donativos/mostrarDonativos": {
+            "get": {
                 "summary": "Muestra los donativos",
                 "operationId": "mostrarDonativos",
                 "produces": ["application/json"],
@@ -791,11 +779,9 @@
                 },
                 "description": "Muestra los donativos"
             }
-        },        
-        "/api/donativos/eliminarDonativo/{id}":
-        {
-            "delete":
-            {
+        },
+        "/api/donativos/eliminarDonativo/{id}": {
+            "delete": {
                 "tags": ["donativos"],
                 "summary": "Elimina un donativo",
                 "description": "Elimina un donativo",
@@ -810,7 +796,7 @@
                         "description": "Error al eliminar donativo"
                     }
                 },
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "id",
                         "in": "path",
@@ -824,15 +810,13 @@
                 ]
             }
         },
-        "/api/donativos/actualizarDonativo/{id}":
-        {
-            "put":
-            {
+        "/api/donativos/actualizarDonativo/{id}": {
+            "put": {
                 "summary": "Actualiza un donativo",
                 "operationId": "actualizarDonativo",
                 "consumes": ["application/json"],
                 "produces": ["application/json"],
-                "parameters" : [
+                "parameters": [
                     {
                         "name": "id",
                         "in": "path",
@@ -866,105 +850,105 @@
                 },
                 "description": "Actualiza un donativo"
             }
-        }      
+        }
     },
-    "definitions":{
-        "Usuario" : {
-            "type" : "object",
-            "properties" : {
-                "id" : {
-                    "type" : "number",
-                    "description" : "Código que permite identificar al usuario."
-                },
-                "nombre" : {
-                    "type": "string",
-                    "description" : "Nombre del usuario."
-                },
-                "correo" : {
-                    "type" : "string",
-                    "description" : "Correo electronico del usuario."
-                },
-                "contrasena" : {
-                    "type" : "string",
-                    "description" : "Contraseña para la cuenta del usuario."
-                },
-                "id_puesto" : {
-                    "type" : "number",
-                    "description" : "Id del puesto del ususario."
-                }
-            }
-        },
-        "Usuarios" : {
-            "type" : "array",
-            "items" : {
-                "$ref" : "#/definitions/Usuario"
-            }
-        },
-        "NuevoUsuario" : {
-            "type" : "object",
-            "properties" : {
-                "nombre" : {
-                    "type": "string",
-                    "description" : "Nombre del usuario."
-                },
-                "correo" : {
-                    "type" : "string",
-                    "description" : "Correo electronico del usuario."
-                },
-                "contrasena" : {
-                    "type" : "string",
-                    "description" : "Contraseña para la cuenta del usuario."
-                },
-                "id_puesto" : {
-                    "type" : "number",
-                    "description" : "Id del puesto del ususario."
-                }
-            }
-        },
-        "Rol" : {
-            "type" : "object",
-            "properties" : {
-                "id" : {
-                    "type" : "number",
-                    "description" : "Código que permite identificar el rol."
-                },
-                "puesto" : {
-                    "type" : "string",
-                    "description" : "Nombre del rol."
-                }
-            }
-        },
-        "Roles" : {
-            "type" : "array",
-            "items" : {
-                "$ref" : "#/definitions/Rol"
-            }
-        },
-        "NuevoRol" : {
-            "type" : "object",
-            "properties" : {
-                "puesto" : {
-                    "type" : "string",
-                    "description" : "Nombre del rol."
-                }
-            }
-        },
-        "contacto" : {
+    "definitions": {
+        "Usuario": {
             "type": "object",
-            "propierties" : {
-                "id" : {
+            "properties": {
+                "id": {
+                    "type": "number",
+                    "description": "Código que permite identificar al usuario."
+                },
+                "nombre": {
+                    "type": "string",
+                    "description": "Nombre del usuario."
+                },
+                "correo": {
+                    "type": "string",
+                    "description": "Correo electronico del usuario."
+                },
+                "contrasena": {
+                    "type": "string",
+                    "description": "Contraseña para la cuenta del usuario."
+                },
+                "id_puesto": {
+                    "type": "number",
+                    "description": "Id del puesto del ususario."
+                }
+            }
+        },
+        "Usuarios": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Usuario"
+            }
+        },
+        "NuevoUsuario": {
+            "type": "object",
+            "properties": {
+                "nombre": {
+                    "type": "string",
+                    "description": "Nombre del usuario."
+                },
+                "correo": {
+                    "type": "string",
+                    "description": "Correo electronico del usuario."
+                },
+                "contrasena": {
+                    "type": "string",
+                    "description": "Contraseña para la cuenta del usuario."
+                },
+                "id_puesto": {
+                    "type": "number",
+                    "description": "Id del puesto del ususario."
+                }
+            }
+        },
+        "Rol": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "number",
+                    "description": "Código que permite identificar el rol."
+                },
+                "puesto": {
+                    "type": "string",
+                    "description": "Nombre del rol."
+                }
+            }
+        },
+        "Roles": {
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Rol"
+            }
+        },
+        "NuevoRol": {
+            "type": "object",
+            "properties": {
+                "puesto": {
+                    "type": "string",
+                    "description": "Nombre del rol."
+                }
+            }
+        },
+        "contacto": {
+            "type": "object",
+            "propierties": {
+                "id": {
                     "type": "integer",
                     "description": "id del contacto"
                 },
-                "name" : {
+                "name": {
                     "type": "string",
                     "description": "nombre del contacto"
                 },
-                "email" : {
+                "email": {
                     "type": "string",
                     "description": "email del contacto"
                 },
-                "mensaje" : {
+                "mensaje": {
                     "type": "string",
                     "description": "mensaje del contacto"
                 }
@@ -978,24 +962,24 @@
                 }
             }
         },
-        "contactos" : {
+        "contactos": {
             "type": "array",
             "items": {
                 "$ref": "#/definitions/contacto"
             }
         },
-        "nuevoContacto" : {
+        "nuevoContacto": {
             "type": "object",
-            "properties" : {
-                "name" : {
+            "properties": {
+                "name": {
                     "type": "string",
                     "description": "nombre del contacto"
                 },
-                "email" : {
+                "email": {
                     "type": "string",
                     "description": "email del contacto"
                 },
-                "message" : {
+                "message": {
                     "type": "string",
                     "description": "mensaje del contacto"
                 }
@@ -1051,7 +1035,7 @@
                     "type": "string"
                 }
             }
-        },        
+        },
         "donativo": {
             "type": "object",
             "properties": {

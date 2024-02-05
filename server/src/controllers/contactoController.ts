@@ -8,8 +8,8 @@ class ContactoController
     }    
 
     public async mostrarContactos(req: Request, res: Response ): Promise<void>{
-        const respuesta = await pool.query('SELECT * FROM contacto');
-        res.json( respuesta );
+        const respuesta = await pool.query('SELECT * FROM contacto;');
+        res.json( respuesta.rows );
     }
 
     public async buscarContacto(req: Request, res: Response ): Promise<void>{

@@ -9,7 +9,7 @@
             "url": "https://opensource.org/licenses/MIT"
         }
     },
-    "host": "localhost:3000",
+    "host": "hifas-de-grana.onrender.com",
     "basePath": "",
     "tags": [
         {
@@ -26,7 +26,7 @@
         }
     ],
     "schemes": [
-        "http"
+        "https"
     ],
     "consumes": [
         "application/json"
@@ -40,8 +40,8 @@
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Listado de todos los usuarios en el CIIT.",
-                "description": "<p>Servicio que devuelve la información detallada de todos los usuarios que existen en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son los usuarios existentes en el CIIT?</strong></em></p>",
+                "summary": "Listado de todos los usuarios en el la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de todos los usuarios que existen en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son los usuarios existentes en la base de datos?</strong></em></p>",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -78,8 +78,8 @@
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Obtiene un usuario del CIIT.",
-                "description": "<p>Servicio que devuelve la información detallada de un usuario existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Existe el usuario en el CIIT?</strong></em></p>",
+                "summary": "Obtiene un usuario de la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de un usuario existente en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Existe el usuario en la base de datos?</strong></em></p>",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -187,8 +187,8 @@
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Elimina un usuario del CIIT.",
-                "description": "<p>Servicio que elimina un usuario existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Qué usuario se eliminará en el CIIT?</strong></em></p>",
+                "summary": "Elimina un usuario del la base de datos.",
+                "description": "<p>Servicio que elimina un usuario existente en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Qué usuario se eliminará en la base de datos?</strong></em></p>",
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -214,8 +214,8 @@
                 "tags": [
                     "Roles"
                 ],
-                "summary": "Listado de todos los roles en el CIIT",
-                "description": "<p>Servicio que devuelve la información detallada de todos los roles que existen en una empresa en el en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son las roles existentes en el CIIT?</strong></em></p>",
+                "summary": "Listado de todos los roles en la base de datos",
+                "description": "<p>Servicio que devuelve la información detallada de todos los roles que existen en una empresa en el en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son las roles existentes en la base de datos?</strong></em></p>",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -242,8 +242,8 @@
                 "tags": [
                     "Roles"
                 ],
-                "summary": "Obtiene un rol dentro del CIIT.",
-                "description": "<p>Servicio que devuelve la información detallada de un rol existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Existe el rol en el CIIT?</strong></em></p>",
+                "summary": "Obtiene un rol dentro de la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de un rol existente en la base de datos .</p><p>&nbsp;</p><p><em><strong>¿Existe el rol en el la base de datos?</strong></em></p>",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -348,8 +348,8 @@
                 "tags": [
                     "Roles"
                 ],
-                "summary": "Elimina un rol del CIIT.",
-                "description": "<p>Servicio que elimina un rol existente en el CIIT.</p><p>&nbsp;</p><p><em><strong>¿Qué rol se eliminará en el CIIT?</strong></em></p>",
+                "summary": "Elimina un rol de la base de datos.",
+                "description": "<p>Servicio que elimina un rol existente en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Qué rol se eliminará en la base de datos?</strong></em></p>",
                 "responses": {
                     "200": {
                         "description": "OK"
@@ -427,9 +427,14 @@
                     "200": {
                         "description": "contactos",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/contacto"
+                            "type": "object",
+                            "properties": {
+                                "rows": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/Row"
+                                    }
+                                }
                             }
                         },
                         "examples": {
@@ -453,7 +458,7 @@
                         "description": "Error al mostrar contactos"
                     }
                 },
-                "description": "Muestra a aquellos ususarios interesados en contactar con el colectivo"
+                "description": "Muestra a aquellos ususarios interesados en contactar con el colectivo y ser una hifa mas "
             }
         },
         "/api/contacto/eliminarContacto/{id}": {
