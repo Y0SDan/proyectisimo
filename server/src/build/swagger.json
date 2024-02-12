@@ -9,7 +9,7 @@
             "url": "https://opensource.org/licenses/MIT"
         }
     },
-    "host": "hifas-de-grana.onrender.com",
+    "host": "localhost:3000",
     "basePath": "",
     "tags": [
         {
@@ -26,7 +26,7 @@
         }
     ],
     "schemes": [
-        "https"
+        "http"
     ],
     "consumes": [
         "application/json"
@@ -35,13 +35,321 @@
         "application/json"
     ],
     "paths": {
+        "/api/administrador/mostrarAdministradores": {
+            "get": {
+                "tags": [
+                    "Administradores"
+                ],
+                "summary": "Listado de todos los administradores en la base de datos.",
+                "description": "<p>Servicio que devuelve la información detallada de todos los administradores que existen en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son los administradores existentes en la base de datos?</strong></em></p>",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "examples": {
+                            "application/json": [
+                                {
+                                    "id": 1,
+                                    "nombre": "Hifas de Grana",
+                                    "correo": "ea.cinedebate@gmail.com",
+                                    "contraseña": "12345678"
+                                },
+                                {
+                                    "id": 2,
+                                    "nombre": "Coco",
+                                    "correo": "cocoadministrador@gmail.com",
+                                    "contraseña": "12345678"
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Error en la solicitud"
+                    },
+                    "404": {
+                        "description": "Administradores no encontrados"
+                    }
+                }
+            }
+        },
+        "/api/administrador/crearAdministrador": {
+            "post": {
+                "tags": [
+                    "Administradores"
+                ],
+                "summary": "Crea un nuevo administrador en la base de datos.",
+                "description": "Servicio que permite crear un nuevo administrador proporcionando los detalles necesarios.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Información del administrador que se va a crear.",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "nombre": {
+                                    "type": "string",
+                                    "description": "Nombre del administrador."
+                                },
+                                "correo": {
+                                    "type": "string",
+                                    "description": "Correo electrónico del administrador."
+                                },
+                                "contrasena": {
+                                    "type": "string",
+                                    "description": "Contraseña del administrador."
+                                }
+                            },
+                            "required": ["nombre", "correo", "contrasena"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Administrador creado exitosamente.",
+                        "examples": {
+                            "application/json": {
+                                "command": "INSERT",
+                                "rowCount": 1,
+                                "oid": null,
+                                "rows": [],
+                                "fields": [],
+                                "rowAsArray": false
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud incorrecta. Por favor, verifica los datos enviados."
+                    }
+                }
+            }
+        },
+        "/api/administrador/actualizarAdministrador/{id}": {
+            "put": {
+                "tags": [
+                    "Administradores"
+                ],
+                "summary": "Actualiza un administrador en la base de datos.",
+                "description": "Servicio que permite actualizar un administrador proporcionando los detalles necesarios.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "ID del administrador.",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Información del administrador que se va a actualizar.",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "nombre": {
+                                    "type": "string",
+                                    "description": "Nombre del administrador."
+                                },
+                                "correo": {
+                                    "type": "string",
+                                    "description": "Correo electrónico del administrador."
+                                },
+                                "contrasena": {
+                                    "type": "string",
+                                    "description": "Contraseña del administrador."
+                                }
+                            },
+                            "required": ["nombre", "correo", "contrasena"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Administrador actualizado exitosamente.",
+                        "examples": {
+                            "application/json": {
+                                "command": "UPDATE",
+                                "rowCount": 1,
+                                "oid": null,
+                                "rows": [],
+                                "fields": [],
+                                "rowAsArray": false
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solicitud incorrecta. Por favor, verifica los datos enviados."
+                    }
+                }
+            }
+        },
+        "/api/administrador/buscarAdministrador/{id}": {
+            "get": {
+                "tags": [
+                    "Administradores"
+                ],
+                "summary": "Buscar un administrador por ID",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "description": "ID del administrador",
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Administrador encontrado",
+                        "examples": {
+                            "application/json": {
+                                "id": 1,
+                                "nombre": "Nombre del administrador",
+                                "correo": "correo@dominio.com",
+                                "contrasena": "contraseña"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Administrador no encontrado"
+                    },
+                    "500": {
+                        "description": "Error del servidor"
+                    }
+                }
+            }
+        },
+        "/api/administrador/eliminarAdministrador/{id}": {
+            "delete": {
+                "tags": [
+                    "Administradores"
+                ],
+                "summary": "Eliminar un administrador por ID",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "description": "ID del administrador",
+                        "type": "integer"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Administrador eliminado",
+                        "examples": {
+                            "application/json": {
+                                "command": "DELETE",
+                                "rowCount": 1,
+                                "oid": null,
+                                "rows": [],
+                                "fields": [],
+                                "rowAsArray": false
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Administrador no encontrado"
+                    },
+                    "500": {
+                        "description": "Error del servidor"
+                    }
+                }
+            }
+        },
+        "/api/administrador/loginAdministrador": {
+            "post": {
+                "tags": [
+                    "Administradores"
+                ],
+                "summary": "Iniciar sesión",
+                "description": "Servicio que permite a un administrador iniciar sesión en la aplicación.",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "Credenciales del administrador.",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "correo": {
+                                    "type": "string",
+                                    "description": "Correo electrónico del administrador."
+                                },
+                                "contrasena": {
+                                    "type": "string",
+                                    "description": "Contraseña del administrador."
+                                }
+                            },
+                            "required": ["correo", "contrasena"]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Inicio de sesión exitoso",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "IniciarSesionExitoso": {
+                                        "value": {
+                                            "id": 1,
+                                            "nombre": "Nombre del administrador",
+                                            "correo": "correo@dominio.com",
+                                            "contrasena": "contrasena"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Correo o contraseña incorrectos",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "ErrorDeAutenticacion": {
+                                        "value": {
+                                            "message": "Correo o contraseña incorrectos"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Error del servidor",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "ErrorDelServidor": {
+                                        "value": {
+                                            "message": "Error del servidor"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/usuarios/mostrarTodosUsuarios": {
             "get": {
                 "tags": [
                     "Usuarios"
                 ],
-                "summary": "Listado de todos los usuarios en el la base de datos.",
+                "summary": "Listado de todos los usuarios en la la base de datos.",
                 "description": "<p>Servicio que devuelve la información detallada de todos los usuarios que existen en la base de datos.</p><p>&nbsp;</p><p><em><strong>¿Cuáles son los usuarios existentes en la base de datos?</strong></em></p>",
+                "parameters": [{
+                        "description": "apiKey",
+                        "type": "string",
+                        "in": "header",
+                        "name": "Authorization",
+                        "default": "Bearer eyJhbGciOiJIUzI1NiJ9.ZXJpa3VlQGdtYWlsLmNvbQ.v7atXtnZ9F14ahwqCSjYKQirsvjs5aWQ4MrPz-BCBSk"
+                    }],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -62,14 +370,7 @@
                     },
                     "403": {
                         "description": "Prohibido"
-                    },
-                    "parameters": [{
-                            "description": "apiKey",
-                            "type": "string",
-                            "in": "header",
-                            "name": "Authorization",
-                            "default": "Bearer eyJhbGciOiJIUzI1NiJ9.ZXJpa3VlQGdtYWlsLmNvbQ.v7atXtnZ9F14ahwqCSjYKQirsvjs5aWQ4MrPz-BCBSk"
-                        }]
+                    }
                 }
             }
         },
@@ -372,24 +673,28 @@
         },
         "/api/contacto/crearContacto": {
             "post": {
-                "summary": "creando un nuevo contacto",
+                "summary": "Crea un contacto",
                 "operationId": "crearContacto",
                 "produces": ["application/json"],
                 "parameters": [
                     {
                         "name": "contacto",
                         "in": "body",
-                        "description": "contacto agregado",
+                        "description": "contacto para agregar",
                         "required": true,
-                        "shema": {
-                            "$ref": "#/definitions/contacto"
-                        },
-                        "example": {
-                            "application/json": {
-                                "id": 1,
-                                "name": "Juan",
-                                "email": "juan.perez@example.com",
-                                "message": "Hola, este es un mensaje de prueba."
+                        "schema": {
+                            "type": "object",
+                            "required": ["nombre", "correo", "mensaje"],
+                            "properties": {
+                                "name": {
+                                    "type": "string"
+                                },
+                                "email": {
+                                    "type": "string"
+                                },
+                                "message": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
@@ -399,22 +704,32 @@
                     "200": {
                         "description": "contacto agregado",
                         "schema": {
-                            "$ref": "#/definitions/contacto"
-                        },
-                        "examples": {
-                            "application/json": {
-                                "id": 1,
-                                "name": "Juan",
-                                "email": "juan.perez@example.com",
-                                "message": "Hola, este es un mensaje de prueba."
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                },
+                                "nombre": {
+                                    "type": "string"
+                                },
+                                "correo": {
+                                    "type": "string"
+                                },
+                                "mensaje": {
+                                    "type": "string"
+                                }
                             }
                         }
                     },
                     "400": {
                         "description": "Error al agregar contacto"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
                     }
                 },
-                "description": "añade un contacto a la base de datos"
+                "description": "Crea un contacto"
             }
         },
         "/api/contacto/mostrarContactos": {
@@ -432,7 +747,7 @@
                                 "rows": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/Row"
+                                        "$ref": "#/definitions"
                                     }
                                 }
                             }
@@ -853,6 +1168,27 @@
         }
     },
     "definitions": {
+        "Administrador": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "number",
+                    "description": "Código que permite identificar al administrador."
+                },
+                "nombre": {
+                    "type": "string",
+                    "description": "Nombre del administrador."
+                },
+                "correo": {
+                    "type": "string",
+                    "description": "Correo electronico del administrador."
+                },
+                "contrasena": {
+                    "type": "string",
+                    "description": "Contraseña para la cuenta del administrador."
+                }
+            }
+        },
         "Usuario": {
             "type": "object",
             "properties": {
@@ -935,53 +1271,20 @@
         },
         "contacto": {
             "type": "object",
-            "propierties": {
+            "required": ["nombre", "correo", "mensaje"],
+            "properties": {
                 "id": {
                     "type": "integer",
-                    "description": "id del contacto"
+                    "format": "int64"
                 },
-                "name": {
-                    "type": "string",
-                    "description": "nombre del contacto"
+                "nombre": {
+                    "type": "string"
                 },
-                "email": {
-                    "type": "string",
-                    "description": "email del contacto"
+                "correo": {
+                    "type": "string"
                 },
                 "mensaje": {
-                    "type": "string",
-                    "description": "mensaje del contacto"
-                }
-            },
-            "example": {
-                "application/json": {
-                    "id": 1,
-                    "name": "Juan",
-                    "email": "juan.perez.actualizado@example.com",
-                    "message": "Hola, este es un mensaje de prueba actualizado."
-                }
-            }
-        },
-        "contactos": {
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/contacto"
-            }
-        },
-        "nuevoContacto": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "nombre del contacto"
-                },
-                "email": {
-                    "type": "string",
-                    "description": "email del contacto"
-                },
-                "message": {
-                    "type": "string",
-                    "description": "mensaje del contacto"
+                    "type": "string"
                 }
             }
         },

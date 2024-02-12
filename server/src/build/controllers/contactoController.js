@@ -14,8 +14,17 @@ const pool = require('../database');
 class ContactoController {
     createContacto(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const resp = yield pool.query("INSERT INTO contacto set ?", [req.body]);
-            res.json(resp);
+            const { name, email, message } = req.body;
+            try {
+                const resp = yield pool.query("INSERT INTO contacto (name, email, message) VALUES ($1, $2, $3) RETURNING *", [name, email, message]);
+                console.log("Respuesta:", resp.rows[0]);
+                res.json(resp.rows[0]);
+            }
+            catch (error) {
+                const err = error;
+                console.error(err);
+                res.status(500).json({ error: err.message });
+            }
         });
     }
     mostrarContactos(req, res) {

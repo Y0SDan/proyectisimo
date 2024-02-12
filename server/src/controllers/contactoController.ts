@@ -3,8 +3,17 @@ const pool = require('../database');
 class ContactoController
 {
     public async createContacto(req: Request, res: Response): Promise<void> {
-        const resp = await pool.query("INSERT INTO contacto set ?",[req.body]);
-        res.json(resp);        
+        const { name, email, message } = req.body;
+
+        try{
+            const resp = await pool.query("INSERT INTO contacto (name, email, message) VALUES ($1, $2, $3) RETURNING *", [name, email, message]);
+            console.log("Respuesta:", resp.rows[0]);
+            res.json(resp.rows[0]);
+        } catch (error) {
+            const err = error as Error;
+            console.error(err);
+            res.status(500).json({ error: err.message });
+        }
     }    
 
     public async mostrarContactos(req: Request, res: Response ): Promise<void>{

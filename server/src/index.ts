@@ -4,6 +4,7 @@ import indexRoutes from './routes/indexRoutes';
 import contactoRoutes from './routes/contactoRoutes';
 import recursos_educativosRoutes from './routes/recursos_educativosRoutes';
 import donativosRoutes from './routes/donativosRoutes';
+import administradorRoutes from './routes/administradorRoutes';
 import morgan from 'morgan';
 import cors from 'cors';
 import swaggerDocument from './swagger.json';
@@ -32,6 +33,7 @@ routes (): void
     this.app.use('/api/contacto',contactoRoutes);
     this.app.use('/api/recursos_educativos',recursos_educativosRoutes);
     this.app.use('/api/donativos',donativosRoutes);
+    this.app.use('/api/administrador',administradorRoutes);
 }
 start (): void
 {

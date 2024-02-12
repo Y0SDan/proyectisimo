@@ -9,6 +9,7 @@ const indexRoutes_1 = __importDefault(require("./routes/indexRoutes"));
 const contactoRoutes_1 = __importDefault(require("./routes/contactoRoutes"));
 const recursos_educativosRoutes_1 = __importDefault(require("./routes/recursos_educativosRoutes"));
 const donativosRoutes_1 = __importDefault(require("./routes/donativosRoutes"));
+const administradorRoutes_1 = __importDefault(require("./routes/administradorRoutes"));
 const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = __importDefault(require("cors"));
 const swagger_json_1 = __importDefault(require("./swagger.json"));
@@ -31,6 +32,7 @@ class Server {
         this.app.use('/api/contacto', contactoRoutes_1.default);
         this.app.use('/api/recursos_educativos', recursos_educativosRoutes_1.default);
         this.app.use('/api/donativos', donativosRoutes_1.default);
+        this.app.use('/api/administrador', administradorRoutes_1.default);
     }
     start() {
         this.app.listen(this.app.get('port'), () => {
